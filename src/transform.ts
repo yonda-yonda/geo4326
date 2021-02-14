@@ -3,7 +3,7 @@ import type { Feature, Position } from "geojson";
 import { Point, Points, CutRing } from "./types";
 import { validLinearRing } from "./_validates";
 import { isCcw, within, intersection } from "./utils";
-import { CrossingLat, cutRingAtAntimeridian } from "./flat";
+import { CrossingLat, cutRingAtAntimeridian } from "./flatten";
 import { linearInterpolationY, linearInterpolationPoints } from "./calc";
 import {
   InvalidLinearRingEnclosingPoleError,

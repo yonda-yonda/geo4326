@@ -3,7 +3,7 @@ const {
   _isCrossingAntimeridian,
   _crossingAntimeridianPointLat,
   cutRingAtAntimeridian,
-} = require("../dist/flat.js");
+} = require("../dist/flatten.js");
 
 it("warpWithin", () => {
   expect(_warpWithin(60)).toBe(60);
