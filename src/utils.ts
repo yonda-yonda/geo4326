@@ -6,6 +6,10 @@ export function _eq(a: number, b: number): boolean {
   return Math.abs(a - b) < EPSILON;
 }
 
+export function _toRadians(degree: number): number {
+  return degree * (Math.PI / 180);
+}
+
 export function isCcw(linearRing: Points): boolean {
   validLinearRing(linearRing);
   let area = 0.0;

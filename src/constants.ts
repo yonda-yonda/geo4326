@@ -7,3 +7,6 @@ export const CRS_ARCTIC_POLAR_STEROGRAPHIC =
 
 export const CRS_ANTARCTIC_POLAR_STEROGRAPHIC =
   "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs "; // EPSG:3031
+
+export const SEMEMAJOR_AXIS_WGS84 = 6378137;
+export const FLATTENING_WGS84 = 298.257223563;
