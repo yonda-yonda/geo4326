@@ -1,19 +1,24 @@
 # geo4326
 
-geo4326 convert bounds of satellite data such as GeoTIFF to Polygon of EPSG:4326.  
+geo4326 is utilities for geospatial vector data.
+
+- create a polygon of EPSG:4326 from other projection coordinates.
+- cut a polygon of EPSG:4326 at the Antimeridian.
+- measure distace and area on the WGS 84 ellipsoid.
+
 Depends: proj4
 
 ## Example
 
 ```JavaScript
 import { transform } from "geo4326";
-const upper_left = [382200, 2512500]
-const lower_left = [382200, 2279400]
-const upper_right = [610500, 2512500]
-const lower_right = [610500, 2279400]
-const src_crs = "+proj=utm +zone=45 +datum=WGS84 +units=m +no_defs";
+const upperLeft = [382200, 2512500]
+const lowerLeft = [382200, 2279400]
+const upperRight = [610500, 2512500]
+const lowerRight = [610500, 2279400]
+const srcCrs = "+proj=utm +zone=45 +datum=WGS84 +units=m +no_defs";
 transform.geojsonFromCornerCoordinates(
-    upper_left, lower_left, upper_right, lower_right, src_crs,
+    upperLeft, lowerLeft, upperRight, lowerRight, srcCrs,
     { partition: 1 }
 )
 ```
