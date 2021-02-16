@@ -1,9 +1,23 @@
+import type {
+  Feature,
+  Geometry,
+  Polygon,
+  MultiPolygon,
+  Position,
+  LineString,
+  MultiLineString,
+} from "geojson";
 import { validPoint, validLinearRing } from "./_validates";
-import { Point, Points } from "./types";
+import { Points } from "./types";
 import { SEMEMAJOR_AXIS_WGS84, FLATTENING_WGS84 } from "./constants";
+import {
+  NotConvergeCalculationError,
+  NotSupportMeasuringDistance,
+  NotSupportMeasuringArea,
+} from "./errors";
 import { _eq, _toRadians } from "./utils";
 
-export function distance(p1: Point, p2: Point, userOptions = {}): number {
+const _distance = (p1: Position, p2: Position, userOptions = {}): number => {
   // https://vldb.gsi.go.jp/sokuchi/surveycalc/surveycalc/algorithm/bl2st/bl2st.htm
   // https://www.tandfonline.com/doi/abs/10.1179/sre.1996.33.261.461
   validPoint(p1);
@@ -153,7 +167,7 @@ export function distance(p1: Point, p2: Point, userOptions = {}): number {
     if (Math.abs(F) < options.truncation) break;
     cnt += 1;
   }
-  if (cnt >= options.maxCount) throw new Error();
+  if (cnt >= options.maxCount) throw new NotConvergeCalculationError();
 
   const n0 = (epsilon * Gamma) / (Math.sqrt(1 + epsilon * Gamma) + 1) ** 2;
   const A = (1 + n0) * (1 + (5 / 4) * n0 ** 2);
@@ -174,6 +188,71 @@ export function distance(p1: Point, p2: Point, userOptions = {}): number {
                 6)) /
             4))
   );
+};
+
+const _linestringDistance = (
+  geometry: LineString,
+  userOptions = {}
+): number => {
+  return _arrayDistance(geometry.coordinates, userOptions);
+};
+
+const _multiLinestringPolygonDistance = (
+  geometry: Polygon | MultiLineString,
+  userOptions = {}
+): number => {
+  let ret = 0;
+  for (let i = 0; i < geometry.coordinates.length; i++) {
+    ret += _arrayDistance(geometry.coordinates[i], userOptions);
+  }
+  return ret;
+};
+
+const _multiPolygonDistance = (
+  geometry: MultiPolygon,
+  userOptions = {}
+): number => {
+  let ret = 0;
+  for (let i = 0; i < geometry.coordinates.length; i++) {
+    ret += _multiLinestringPolygonDistance(
+      {
+        type: "Polygon",
+        coordinates: geometry.coordinates[i],
+      },
+      userOptions
+    );
+  }
+  return ret;
+};
+
+const _arrayDistance = (points: Position[], userOptions = {}): number => {
+  let ret = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    ret += _distance(points[i], points[i + 1], userOptions);
+  }
+  return ret;
+};
+
+export function distance(
+  data: Position[] | Feature | Geometry,
+  userOptions = {}
+): number {
+  if (Array.isArray(data)) {
+    return _arrayDistance(data, userOptions);
+  }
+  switch (data?.type) {
+    case "Feature":
+      return distance(data.geometry, userOptions);
+    case "LineString":
+      return _linestringDistance(data, userOptions);
+    case "MultiLineString":
+      return _multiLinestringPolygonDistance(data, userOptions);
+    case "Polygon":
+      return _multiLinestringPolygonDistance(data, userOptions);
+    case "MultiPolygon":
+      return _multiPolygonDistance(data, userOptions);
+  }
+  throw new NotSupportMeasuringDistance();
 }
 
 const _latitudeBelt = (latRad: number, e: number): number => {
@@ -203,7 +282,7 @@ const _haversine = (
   );
 };
 
-export function area(linearRing: Points, userOptions = {}): number {
+const _area = (linearRing: Points, userOptions = {}): number => {
   // https://maps.gsi.go.jp/help/pdf/calc_area.pdf
   validLinearRing(linearRing);
 
@@ -287,4 +366,51 @@ export function area(linearRing: Points, userOptions = {}): number {
     lat1 = lat2;
   }
   return Math.abs(r2 * area);
+};
+
+const _polygonArea = (polygon: Polygon, userOptions: object): number => {
+  let ret = 0;
+  if (Array.isArray(polygon?.coordinates)) {
+    ret += _area(polygon.coordinates[0], userOptions);
+    for (let i = 1; i < polygon.coordinates.length; i++) {
+      ret -= _area(polygon.coordinates[i], userOptions);
+    }
+  }
+  return ret;
+};
+
+const _multiPolygonArea = (
+  polygon: MultiPolygon,
+  userOptions: object
+): number => {
+  let ret = 0;
+  if (Array.isArray(polygon?.coordinates)) {
+    for (let i = 0; i < polygon.coordinates.length; i++)
+      ret += _polygonArea(
+        {
+          type: "Polygon",
+          coordinates: polygon.coordinates[i],
+        },
+        userOptions
+      );
+  }
+  return ret;
+};
+
+export function area(
+  data: Points | Feature | Geometry,
+  userOptions: object
+): number {
+  if (Array.isArray(data)) {
+    return _area(data, userOptions);
+  }
+  switch (data?.type) {
+    case "Feature":
+      return area(data.geometry, userOptions);
+    case "Polygon":
+      return _polygonArea(data, userOptions);
+    case "MultiPolygon":
+      return _multiPolygonArea(data, userOptions);
+  }
+  throw new NotSupportMeasuringArea();
 }

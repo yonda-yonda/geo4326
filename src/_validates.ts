@@ -1,11 +1,13 @@
-import { Point, Points } from "./types";
+import type { Position } from "geojson";
+import { Points } from "./types";
 import {
   InvalidPointError,
   InvalidPointsError,
   InvalidLinearRingError,
 } from "./errors";
 
-export function validPoint(point: Point): void {
+export function validPoint(point: Position): void {
+  if (!Array.isArray(point)) new InvalidPointError();
   if (point.length < 2) throw new InvalidPointError();
   point.forEach((v) => {
     if (typeof v !== "number") throw new InvalidPointError();
@@ -13,6 +15,7 @@ export function validPoint(point: Point): void {
 }
 
 export function validPoints(points: Points): void {
+  if (!Array.isArray(points)) new InvalidPointsError();
   try {
     points.forEach((p) => {
       validPoint(p);

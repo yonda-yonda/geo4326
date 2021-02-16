@@ -64,3 +64,21 @@ export class NotAllowedCwLinearRingError extends CustomError {
     super(m);
   }
 }
+
+export class NotConvergeCalculationError extends CustomError {
+  constructor(m = "not converge calculation.") {
+    super(m);
+  }
+}
+
+export class NotSupportMeasuringDistance extends CustomError {
+  constructor(m = "not support measuring distance.") {
+    super(m);
+  }
+}
+
+export class NotSupportMeasuringArea extends CustomError {
+  constructor(m = "not support measuring area.") {
+    super(m);
+  }
+}

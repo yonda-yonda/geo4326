@@ -1,6 +1,6 @@
 import proj4 from "proj4";
 import type { Feature, Position } from "geojson";
-import { Point, Points, CutRing } from "./types";
+import { Points, CutRing } from "./types";
 import { validLinearRing } from "./_validates";
 import { isCcw, within, intersection } from "./utils";
 import { CrossingLat, cutRingAtAntimeridian } from "./flatten";
@@ -26,8 +26,8 @@ export function _transform(
 ): Points {
   if (srcCrs === dstCrs) return points;
   return points.map(
-    (p: Point): Point => {
-      const transformed: Point = proj4(srcCrs, dstCrs, [p[0], p[1]]);
+    (p: Position): Position => {
+      const transformed: Position = proj4(srcCrs, dstCrs, [p[0], p[1]]);
       return [...transformed, ...p.slice(2)];
     }
   );
@@ -364,10 +364,10 @@ export function geojsonFromLinearRing(
 }
 
 export function geojsonFromCornerCoordinates(
-  upperLeft: Point,
-  lowerLeft: Point,
-  upperRight: Point,
-  lowerRight: Point,
+  upperLeft: Position,
+  lowerLeft: Position,
+  upperRight: Position,
+  lowerRight: Position,
   srcCrs: string,
   userOptions = {}
 ): Feature {

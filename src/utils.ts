@@ -1,4 +1,5 @@
-import { Point, Points } from "./types";
+import type { Position } from "geojson";
+import { Points } from "./types";
 import { validPoint, validLinearRing } from "./_validates";
 import { EPSILON } from "./constants";
 
@@ -29,7 +30,7 @@ type withinOptions = {
 };
 
 export function within(
-  point: Point,
+  point: Position,
   linearRing: Points,
   userOptions: withinOptions = {}
 ): boolean {
@@ -68,10 +69,10 @@ export function within(
 }
 
 export function intersection(
-  p1: Point,
-  p2: Point,
-  p3: Point,
-  p4: Point
+  p1: Position,
+  p2: Position,
+  p3: Position,
+  p4: Position
 ): boolean {
   /*
     When p1 -> p2, p3 -> p4 are crossing || points more than 3 are on a line,
@@ -114,7 +115,7 @@ export function intersection(
   return true;
 }
 
-const _checkLinesintersection = (lines: Point[][], start = 0): boolean => {
+const _checkLinesintersection = (lines: Position[][], start = 0): boolean => {
   if (start + 2 >= lines.length) return false;
 
   const l1 = lines[start];

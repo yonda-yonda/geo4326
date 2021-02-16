@@ -1,5 +1,5 @@
-export type Point = [number, number, ...number[]];
-export type Points = Point[];
+import type { Position } from "geojson";
+export type Points = Position[];
 export type CutRing = {
   within: Points[];
   outside: Points[];

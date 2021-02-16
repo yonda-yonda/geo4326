@@ -1,5 +1,6 @@
+import type { Position } from "geojson";
 import { validLinearRing } from "./_validates";
-import { Point, Points, CutRing } from "./types";
+import { Points, CutRing } from "./types";
 import { linearInterpolationY } from "./calc";
 import { InvalidSelfintersectionError } from "./errors";
 import { selfintersection } from "./utils";
@@ -38,7 +39,10 @@ export function _isCrossingAntimeridian(lon1: number, lon2: number): boolean {
   return Math.abs(lon1 - lon2) > 180;
 }
 
-export function _crossingAntimeridianPointLat(p1: Point, p2: Point): number {
+export function _crossingAntimeridianPointLat(
+  p1: Position,
+  p2: Position
+): number {
   /*
     p1=[-150, 0], p2=[170, 20]) -> 15
     p1=[-20,-10], p2=[10, 170] -> 85
