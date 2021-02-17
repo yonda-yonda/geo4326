@@ -234,7 +234,7 @@ const _arrayDistance = (points: Position[], userOptions = {}): number => {
 };
 
 export function distance(
-  data: Position[] | Feature | Geometry,
+  data: Points | Feature | Geometry,
   userOptions = {}
 ): number {
   if (Array.isArray(data)) {
