@@ -7,9 +7,11 @@
   "scripts": {
     "test": "npm run build && npx jest",
     "lint": "npx eslint ./src/",
-    "build": "npx tsc -p ./"
+    "build": "npx tsc -p ./",
+    "prepublishOnly": "npm run build"
   },
   "author": "yonda <yonda.fountain@gmail.com>",
+  "homepage": "https://github.com/yonda-yonda/geo4326",
   "license": "MIT",
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.15.0",
@@ -23,6 +25,10 @@
     "@types/geojson": "^7946.0.7",
     "@types/proj4": "^2.5.0",
     "proj4": "^2.7.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yonda-yonda/geo4326.git"
   },
   "keywords": [
     "typescript",
