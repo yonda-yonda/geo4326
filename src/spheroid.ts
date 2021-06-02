@@ -17,7 +17,23 @@ import {
 } from "./errors";
 import { _eq, _toRadians } from "./utils";
 
-const _distance = (p1: Position, p2: Position, userOptions = {}): number => {
+export interface DistanceOptions {
+  semimajorAxis?: number;
+  flattening?: number;
+  truncation?: number;
+  maxCount?: number;
+}
+
+export interface AreaOptions {
+  semimajorAxis?: number;
+  flattening?: number;
+}
+
+const _distance = (
+  p1: Position,
+  p2: Position,
+  userOptions: DistanceOptions = {}
+): number => {
   // https://vldb.gsi.go.jp/sokuchi/surveycalc/surveycalc/algorithm/bl2st/bl2st.htm
   // https://www.tandfonline.com/doi/abs/10.1179/sre.1996.33.261.461
   validPoint(p1);
@@ -192,14 +208,14 @@ const _distance = (p1: Position, p2: Position, userOptions = {}): number => {
 
 const _linestringDistance = (
   geometry: LineString,
-  userOptions = {}
+  userOptions: DistanceOptions = {}
 ): number => {
   return _arrayDistance(geometry.coordinates, userOptions);
 };
 
 const _multiLinestringPolygonDistance = (
   geometry: Polygon | MultiLineString,
-  userOptions = {}
+  userOptions: DistanceOptions = {}
 ): number => {
   let ret = 0;
   for (let i = 0; i < geometry.coordinates.length; i++) {
@@ -210,7 +226,7 @@ const _multiLinestringPolygonDistance = (
 
 const _multiPolygonDistance = (
   geometry: MultiPolygon,
-  userOptions = {}
+  userOptions: DistanceOptions = {}
 ): number => {
   let ret = 0;
   for (let i = 0; i < geometry.coordinates.length; i++) {
@@ -225,7 +241,10 @@ const _multiPolygonDistance = (
   return ret;
 };
 
-const _arrayDistance = (points: Position[], userOptions = {}): number => {
+const _arrayDistance = (
+  points: Position[],
+  userOptions: DistanceOptions = {}
+): number => {
   let ret = 0;
   for (let i = 0; i < points.length - 1; i++) {
     ret += _distance(points[i], points[i + 1], userOptions);
@@ -235,7 +254,7 @@ const _arrayDistance = (points: Position[], userOptions = {}): number => {
 
 export function distance(
   data: Points | Feature | Geometry,
-  userOptions = {}
+  userOptions: DistanceOptions = {}
 ): number {
   if (Array.isArray(data)) {
     return _arrayDistance(data, userOptions);
@@ -282,7 +301,7 @@ const _haversine = (
   );
 };
 
-const _area = (linearRing: Points, userOptions = {}): number => {
+const _area = (linearRing: Points, userOptions: AreaOptions = {}): number => {
   // https://maps.gsi.go.jp/help/pdf/calc_area.pdf
   validLinearRing(linearRing);
 
@@ -368,7 +387,7 @@ const _area = (linearRing: Points, userOptions = {}): number => {
   return Math.abs(r2 * area);
 };
 
-const _polygonArea = (polygon: Polygon, userOptions: object): number => {
+const _polygonArea = (polygon: Polygon, userOptions: AreaOptions): number => {
   let ret = 0;
   if (Array.isArray(polygon?.coordinates)) {
     ret += _area(polygon.coordinates[0], userOptions);
@@ -381,7 +400,7 @@ const _polygonArea = (polygon: Polygon, userOptions: object): number => {
 
 const _multiPolygonArea = (
   polygon: MultiPolygon,
-  userOptions: object
+  userOptions: AreaOptions
 ): number => {
   let ret = 0;
   if (Array.isArray(polygon?.coordinates)) {
@@ -399,7 +418,7 @@ const _multiPolygonArea = (
 
 export function area(
   data: Points | Feature | Geometry,
-  userOptions: object
+  userOptions: AreaOptions
 ): number {
   if (Array.isArray(data)) {
     return _area(data, userOptions);

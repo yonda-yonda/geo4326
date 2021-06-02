@@ -209,11 +209,11 @@ export function transformBbox(
     userOptions
   );
 
-  const has_height = srcBbox.length === 6;
+  const hasHeight = srcBbox.length === 6;
   const left = srcBbox[0];
   const bottom = srcBbox[1];
-  const right = has_height ? srcBbox[3] : srcBbox[2];
-  const top = has_height ? srcBbox[4] : srcBbox[3];
+  const right = hasHeight ? srcBbox[3] : srcBbox[2];
+  const top = hasHeight ? srcBbox[4] : srcBbox[3];
 
   if (right < left) throw new NotAllowedWarpBoundsError();
 
@@ -247,9 +247,9 @@ export function transformBbox(
     return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
   }
   try {
-    const bounds_ring: CutRing = cutRingAtAntimeridian(points);
+    const boundsRing: CutRing = cutRingAtAntimeridian(points);
     let xs1: number[] = [];
-    bounds_ring.within.forEach((lenearRing: Points) => {
+    boundsRing.within.forEach((lenearRing: Points) => {
       xs1 = xs1.concat(
         lenearRing.map((p) => {
           return p[0];
@@ -257,7 +257,7 @@ export function transformBbox(
       );
     });
     let xs2: number[] = [];
-    bounds_ring.outside.forEach((lenearRing: Points) => {
+    boundsRing.outside.forEach((lenearRing: Points) => {
       xs2 = xs2.concat(
         lenearRing.map((p) => {
           return p[0];
