@@ -7,7 +7,7 @@ import {
 } from "./errors";
 
 export function validPoint(point: Position): void {
-  if (!Array.isArray(point)) new InvalidPointError();
+  if (!Array.isArray(point)) throw new InvalidPointError();
   if (point.length < 2) throw new InvalidPointError();
   point.forEach((v) => {
     if (typeof v !== "number") throw new InvalidPointError();
@@ -15,7 +15,7 @@ export function validPoint(point: Position): void {
 }
 
 export function validPoints(points: Points): void {
-  if (!Array.isArray(points)) new InvalidPointsError();
+  if (!Array.isArray(points)) throw new InvalidPointsError();
   try {
     points.forEach((p) => {
       validPoint(p);
