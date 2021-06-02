@@ -78,7 +78,7 @@ export function _transformEnclosingPoleRing(
     : crossingLats[crossingLats.length - 1];
   let ret: Points = [];
   for (let i = 0; i < length; i++) {
-    if (i == crossingLat["from"]) {
+    if (i === crossingLat["from"]) {
       const transformed1 = _transform(
         linearInterpolationPoints(
           polarSterographicLinearRing[crossingLat["from"]],
