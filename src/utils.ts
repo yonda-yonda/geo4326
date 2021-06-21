@@ -1,6 +1,8 @@
+import epsgIndex from "epsg-index/all.json";
 import type { Position } from "geojson";
 import { Points } from "./types";
 import { validPoint, validLinearRing } from "./_validates";
+import { InvalidCodeError } from "./errors";
 import { EPSILON } from "./constants";
 
 export function _eq(a: number, b: number): boolean {
@@ -147,4 +149,19 @@ export function selfintersection(linearRing: Points): boolean {
   }
 
   return _checkLinesintersection(lines);
+}
+
+export function getCrs(code: string | number): string {
+  const epsgNumber =
+    typeof code === "string" && !!code.match(/^epsg:/i)
+      ? Number(code.replace(/^epsg:/i, ""))
+      : code;
+  if (typeof epsgNumber === "string") return epsgNumber;
+
+  try {
+    const epsgDef = (epsgIndex as any)[epsgNumber];
+    return epsgDef.proj4;
+  } catch {
+    throw new InvalidCodeError();
+  }
 }

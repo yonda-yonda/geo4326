@@ -25,12 +25,12 @@ transform.transformRing(
 
 ### props
 
-| Name              | Type                        | Description                              |
-| ----------------- | --------------------------- | ---------------------------------------- |
-| linearRing        | [Points](./TYPES.md#points) | **REQUIRED.** LinearRing.                |
-| srcCrs            | string                      | **REQUIRED.** proj4string of source CRS. |
-| options           | object                      | optional params.                         |
-| options.partition | number                      | Number of cutting each edge. (DEFAULT=0) |
+| Name              | Type                        | Description                                           |
+| ----------------- | --------------------------- | ----------------------------------------------------- |
+| linearRing        | [Points](./TYPES.md#points) | **REQUIRED.** LinearRing.                             |
+| srcCrs            | string, number              | **REQUIRED.** proj4string of source CRS or EPSG code. |
+| options           | object                      | optional params.                                      |
+| options.partition | number                      | Number of cutting each edge. (DEFAULT=0)              |
 
 ### return
 
@@ -57,7 +57,7 @@ transform.transformRing(
 | Name              | Type                        | Description                                                      |
 | ----------------- | --------------------------- | ---------------------------------------------------------------- |
 | srcBbox           | [Points](./TYPES.md#points) | **REQUIRED.** Source Bbox.                                       |
-| srcCrs            | string                      | **REQUIRED.** proj4string of source CRS.                         |
+| srcCrs            | string, number              | **REQUIRED.** proj4string of source CRS or EPSG code.            |
 | options           | object                      | optional params.                                                 |
 | options.partition | number                      | Number of cutting each edge. Recommends more than 9. (DEFAULT=9) |
 
@@ -127,7 +127,7 @@ transform.geojsonFromCornerCoordinates(
 | lowerLeft         | [Position](./TYPES.md#position) | **REQUIRED.** Source lower left corner.                          |
 | upperRight        | [Position](./TYPES.md#position) | **REQUIRED.** Source upper right corner.                         |
 | lowerRight        | [Position](./TYPES.md#position) | **REQUIRED.** Source lower right corner.                         |
-| srcCrs            | string                          | **REQUIRED.** proj4string of source CRS.                         |
+| srcCrs            | string, number                  | **REQUIRED.** proj4string of source CRS or EPSG code.            |
 | options           | object                          | optional params.                                                 |
 | options.partition | number                          | Number of cutting each edge. Recommends more than 9. (DEFAULT=9) |
 
@@ -202,7 +202,7 @@ transform.geojsonFromLinearRing([
 | Name              | Type                        | Description                                                      |
 | ----------------- | --------------------------- | ---------------------------------------------------------------- |
 | linearRing        | [Points](./TYPES.md#points) | **REQUIRED.** LinearRing.                                        |
-| srcCrs            | string                      | **REQUIRED.** proj4string of source CRS.                         |
+| srcCrs            | string, number              | **REQUIRED.** proj4string of source CRS or EPSG code.            |
 | options           | object                      | optional params.                                                 |
 | options.partition | number                      | Number of cutting each edge. Recommends more than 9. (DEFAULT=9) |
 

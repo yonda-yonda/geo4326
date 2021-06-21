@@ -2,7 +2,7 @@ import proj4 from "proj4";
 import type { Feature, Position } from "geojson";
 import { Points, CutRing } from "./types";
 import { validLinearRing } from "./_validates";
-import { isCcw, within, intersection } from "./utils";
+import { isCcw, within, intersection, getCrs } from "./utils";
 import { CrossingLat, cutRingAtAntimeridian } from "./flatten";
 import { linearInterpolationY, linearInterpolationPoints } from "./calc";
 import {
@@ -133,13 +133,14 @@ export function _transformEnclosingPoleRing(
 
 export function transformRing(
   linearRing: Points,
-  srcCrs: string,
+  srcCrs: string | number,
   userOptions = {}
 ): Points {
   /*
     not support linear rings of including both poles.
   */
   validLinearRing(linearRing);
+  srcCrs = getCrs(srcCrs);
 
   const options = Object.assign(
     {
@@ -192,7 +193,7 @@ export function transformRing(
 
 export function transformBbox(
   srcBbox: number[],
-  srcCrs: string,
+  srcCrs: string | number,
   userOptions = {}
 ): number[] {
   /*
@@ -286,7 +287,7 @@ export function transformBbox(
 
 export function geojsonFromLinearRing(
   linearRing: Points,
-  srcCrs: string,
+  srcCrs: string | number,
   userOptions = {}
 ): Feature {
   if (!isCcw(linearRing)) throw new NotAllowedCwLinearRingError();
@@ -368,7 +369,7 @@ export function geojsonFromCornerCoordinates(
   lowerLeft: Position,
   upperRight: Position,
   lowerRight: Position,
-  srcCrs: string,
+  srcCrs: string | number,
   userOptions = {}
 ): Feature {
   const options = Object.assign(

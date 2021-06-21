@@ -82,3 +82,9 @@ export class NotSupportMeasuringArea extends CustomError {
     super(m);
   }
 }
+
+export class InvalidCodeError extends CustomError {
+  constructor(m = "unsupported epsg code.") {
+    super(m);
+  }
+}
