@@ -153,14 +153,14 @@ export function selfintersection(linearRing: Points): boolean {
 
 export function getCrs(code: string | number): string {
   const epsgNumber =
-    typeof code === "string" && !!code.match(/^epsg:/i)
+    typeof code === "string" && !!/^epsg:/i.exec(code)
       ? Number(code.replace(/^epsg:/i, ""))
       : code;
   if (typeof epsgNumber === "string") return epsgNumber;
 
   try {
-    const epsgDef = (epsgIndex as any)[epsgNumber];
-    return epsgDef.proj4;
+    const epsgDef = (epsgIndex as any)[epsgNumber]; // eslint-disable-line
+    return epsgDef.proj4; // eslint-disable-line
   } catch {
     throw new InvalidCodeError();
   }
