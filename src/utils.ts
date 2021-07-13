@@ -119,9 +119,9 @@ export function intersection(
 
 const _checkLinesintersection = (lines: Position[][], start = 0): boolean => {
   if (start + 2 >= lines.length) return false;
-
   const l1 = lines[start];
-  for (let i = start + 2; i < lines.length; i++) {
+  const end = start === 0 ? lines.length - 1 : lines.length;
+  for (let i = start + 2; i < end; i++) {
     const l2 = lines[i];
     if (intersection(l1[0], l1[1], l2[0], l2[1])) return true;
   }
@@ -144,7 +144,7 @@ export function selfintersection(linearRing: Points): boolean {
     );
 
   const lines = [];
-  for (let i = 0; i < linearRing.length - 2; i++) {
+  for (let i = 0; i < linearRing.length - 1; i++) {
     lines.push([linearRing[i], linearRing[i + 1]]);
   }
 

@@ -223,6 +223,17 @@ it("selfintersection", () => {
       [-10, -10],
     ])
   ).toBeTruthy();
+
+  expect(
+    selfintersection([
+      [-10, -10],
+      [10, -10],
+      [-15, 0],
+      [10, 10],
+      [-10, 10],
+      [-10, -10],
+    ])
+  ).toBeTruthy();
 });
 
 it("getCrs", () => {
