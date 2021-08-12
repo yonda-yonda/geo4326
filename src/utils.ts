@@ -1,9 +1,9 @@
-import epsgIndex from "epsg-index/all.json";
 import type { Position } from "geojson";
 import { Points } from "./types";
 import { validPoint, validLinearRing } from "./_validates";
 import { InvalidCodeError } from "./errors";
 import { EPSILON } from "./constants";
+import { epsgIndex } from "./_generated/epsg-index";
 
 export function _eq(a: number, b: number): boolean {
   return Math.abs(a - b) < EPSILON;
@@ -158,10 +158,10 @@ export function getCrs(code: string | number): string {
       : code;
   if (typeof epsgNumber === "string") return epsgNumber;
 
-  try {
-    const epsgDef = (epsgIndex as any)[epsgNumber]; // eslint-disable-line
-    return epsgDef.proj4; // eslint-disable-line
-  } catch {
+  const epsgDef = (epsgIndex as any)[epsgNumber]; // eslint-disable-line
+  if (epsgDef) {
+    return epsgDef; // eslint-disable-line @typescript-eslint/no-unsafe-return
+  } else {
     throw new InvalidCodeError();
   }
 }
