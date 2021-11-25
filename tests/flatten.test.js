@@ -26,6 +26,10 @@ it("isCrossingAntimeridian", () => {
   expect(_isCrossingAntimeridian(-160, 10)).toBeFalsy();
   expect(_isCrossingAntimeridian(-10, 10)).toBeFalsy();
   expect(_isCrossingAntimeridian(160, 180)).toBeFalsy();
+
+  expect(_isCrossingAntimeridian(560, 530)).toBeTruthy();
+  expect(_isCrossingAntimeridian(-520, -550)).toBeTruthy();
+  expect(_isCrossingAntimeridian(370, 330)).toBeFalsy();
 });
 
 it("crossingAntimeridianPointLat", () => {
@@ -34,6 +38,10 @@ it("crossingAntimeridianPointLat", () => {
   expect(_crossingAntimeridianPointLat([-10, 0], [10, 170])).toBe(85);
   expect(_crossingAntimeridianPointLat([-20, 66], [10, 0])).toBe(34);
   expect(_crossingAntimeridianPointLat([-160, 32], [170, 20])).toBe(24);
+  expect(_crossingAntimeridianPointLat([200, 32], [170, 20])).toBe(24);
+  expect(_crossingAntimeridianPointLat([-160, 32], [-190, 20])).toBe(24);
+  expect(_crossingAntimeridianPointLat([560, 32], [530, 20])).toBe(24);
+  expect(_crossingAntimeridianPointLat([-520, 32], [-550, 20])).toBe(24);
 });
 
 it("cutRingAtAntimeridian", () => {
@@ -268,5 +276,135 @@ it("cutRingAtAntimeridian", () => {
         [-180, 32.5],
       ],
     ],
+  });
+
+  expect(
+    cutRingAtAntimeridian([
+      [185, 50],
+      [175, 40],
+      [175, 30],
+      [185, 40],
+      [185, 50],
+    ])
+  ).toEqual({
+    "outside": [
+      [
+        [180, 35],
+        [185, 40],
+        [185, 50],
+        [180, 45],
+        [180, 35]
+      ]
+    ],
+    "within": [
+      [
+        [180, 45],
+        [175, 40],
+        [175, 30],
+        [180, 35],
+        [180, 45]
+      ]
+    ]
+  });
+
+  expect(
+    cutRingAtAntimeridian([
+      [-170, 70],
+      [-185, 40],
+      [-185, 30],
+      [-170, 60],
+      [-170, 70],
+    ])
+  ).toEqual({
+    "outside": [
+      [
+        [-180, 40],
+        [-170, 60],
+        [-170, 70],
+        [-180, 50],
+        [-180, 40]
+      ]
+    ],
+    "within": [
+      [
+        [-180, 50],
+        [-185, 40],
+        [-185, 30],
+        [-180, 40],
+        [-180, 50]
+      ]
+    ]
+  });
+
+  expect(
+    cutRingAtAntimeridian([
+      [370, 50],
+      [350, 40],
+      [350, 30],
+      [370, 40],
+      [370, 50],
+    ])
+  ).toEqual({
+    "outside": [],
+    "within": [
+      [
+        [370, 50],
+        [350, 40],
+        [350, 30],
+        [370, 40],
+        [370, 50]
+      ]
+    ]
+  });
+
+  expect(
+    cutRingAtAntimeridian([
+      [-530, 70],
+      [-545, 40],
+      [-545, 30],
+      [-530, 60],
+      [-530, 70],
+    ])
+  ).toEqual({
+    "outside": [
+      [
+        [-540, 40],
+        [-530, 60],
+        [-530, 70],
+        [-540, 50],
+        [-540, 40]
+      ]
+    ],
+    "within": [
+      [
+        [-540, 50],
+        [-545, 40],
+        [-545, 30],
+        [-540, 40],
+        [-540, 50]
+      ]
+    ]
+  });
+
+
+  expect(
+    cutRingAtAntimeridian([
+      [200, 50],
+      [190, 40],
+      [190, 30],
+      [200, 40],
+      [200, 50],
+    ])
+  ).toEqual({
+    "outside": [],
+    "within": [
+      [
+        [200, 50],
+        [190, 40],
+        [190, 30],
+        [200, 40],
+        [200, 50]
+      ]
+    ]
   });
 });

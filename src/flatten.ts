@@ -34,6 +34,8 @@ export function _isCrossingAntimeridian(lon1: number, lon2: number): boolean {
   lon1 = _warpWithin(lon1);
   lon2 = _warpWithin(lon2);
 
+  if (Math.abs(lon1) === 180 || Math.abs(lon2) === 180) return false;
+
   if (lon1 * lon2 > 0) return false;
 
   return Math.abs(lon1 - lon2) > 180;
@@ -53,9 +55,11 @@ export function _crossingAntimeridianPointLat(
   let [x2] = p2;
   const [, y1] = p1;
   const [, y2] = p2;
-  if (x1 < 0) x1 = _warpWithin(x1) + 360;
-  if (x2 < 0) x2 = _warpWithin(x2) + 360;
-  return linearInterpolationY([x1, y1], [x2, y2], 180);
+  while (x1 < 0) x1 += 360;
+  while (x2 < 0) x2 += 360;
+  const bound = 180 * Math.floor(Math.max(x1, x2) / 180)
+
+  return linearInterpolationY([x1, y1], [x2, y2], bound);
 }
 
 function _cutting(
@@ -64,8 +68,10 @@ function _cutting(
   end: CrossingLat
 ): CutArea {
   let ringIndex = start["to"] !== linearRing.length - 1 ? start["to"] : 0;
-  const boundLon = linearRing[ringIndex][0] >= 0 ? 180 : -180;
-  const rtn: CutArea = { overflowing: boundLon < 0, linearRing: [] };
+  const diff = linearRing[start["to"]][0] - linearRing[start["from"]][0];
+  const r2l = Math.abs(diff) < 180 ? diff < 0 : diff > 0;
+  const boundLon = r2l ? 180 * Math.ceil(linearRing[ringIndex][0] / 180) : 180 * Math.floor(linearRing[ringIndex][0] / 180)
+  const rtn: CutArea = { overflowing: !r2l, linearRing: [] };
 
   rtn.linearRing.push([
     boundLon,
@@ -126,13 +132,13 @@ export function cutRingAtAntimeridian(
   if (crossingLats.length < 2)
     return !options.overflowing
       ? {
-          within: [linearRing],
-          outside: [],
-        }
+        within: [linearRing],
+        outside: [],
+      }
       : {
-          within: [],
-          outside: [linearRing],
-        };
+        within: [],
+        outside: [linearRing],
+      };
 
   crossingLats.sort(function (a, b) {
     return b.lat - a.lat;
@@ -157,7 +163,6 @@ export function cutRingAtAntimeridian(
   });
   ret.within = ret.within.concat(result2.within);
   ret.outside = ret.outside.concat(result2.outside);
-
   if (!options.allowSelfintersection) {
     ret.within.forEach((ring) => {
       if (selfintersection(ring)) throw new InvalidSelfintersectionError();
