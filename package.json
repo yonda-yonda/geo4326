@@ -1,6 +1,6 @@
 {
   "name": "geo4326",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "geo4326 converts footprint of satellite to polygon of EPSG:4326.",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -14,19 +14,19 @@
   "homepage": "https://github.com/yonda-yonda/geo4326",
   "license": "MIT",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.15.0",
-    "@typescript-eslint/parser": "^4.27.0",
-    "eslint": "^7.29.0",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
+    "eslint": "^7.32.0",
     "eslint-plugin-jest": "^25.3.0",
     "jest": "^26.6.3",
     "prettier": "2.2.1",
-    "typescript": "^4.1.3"
+    "typescript": "^4.5.2"
   },
   "dependencies": {
-    "@types/geojson": "^7946.0.7",
-    "@types/proj4": "^2.5.0",
-    "epsg-index": "^1.1.0",
-    "proj4": "^2.7.0"
+    "@types/geojson": "^7946.0.8",
+    "@types/proj4": "^2.5.2",
+    "epsg-index": "^1.2.0",
+    "proj4": "^2.7.5"
   },
   "repository": {
     "type": "git",
