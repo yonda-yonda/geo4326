@@ -199,8 +199,9 @@ it("cutRingAtAntimeridian", () => {
         [175, 30],
         [-160, 30],
         [-160, 40],
-      ],
-      { allowSelfintersection: true }
+      ], {
+        allowSelfintersection: true
+      }
     )
   ).toEqual({
     within: [
