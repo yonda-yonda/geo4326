@@ -1,5 +1,29 @@
 # utils
 
+## area
+
+```JavaScript
+import { utils } from "geo4326";
+utils.area([
+  [-10, -10],
+  [10, -10],
+  [10, 10],
+  [-10, 10],
+  [-10, -10],
+])
+// 400
+```
+
+#### props
+
+| Name       | Type                        | Description               |
+| ---------- | --------------------------- | ------------------------- |
+| linearRing | [Points](./TYPES.md#points) | **REQUIRED.** linear ring |
+
+#### return
+
+number
+
 ## isCcw
 
 ```JavaScript

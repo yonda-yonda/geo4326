@@ -1,11 +1,43 @@
 const {
+  area,
   isCcw,
   within,
   intersection,
   selfintersection,
   getCrs,
 } = require("../dist/utils.js");
-const { InvalidCodeError } = require("../dist/errors.js");
+const {
+  InvalidCodeError
+} = require("../dist/errors.js");
+
+it("area", () => {
+  expect(
+    area([
+      [-10, -10],
+      [10, -10],
+      [10, 10],
+      [-10, 10],
+      [-10, -10],
+    ])
+  ).toBe(400);
+  expect(
+    area([
+      [-10, -10],
+      [-10, 10],
+      [10, 10],
+      [10, -10],
+      [-10, -10],
+    ])
+  ).toBe(400);
+  expect(
+    area([
+      [0, 0],
+      [6, 0],
+      [3, 4],
+      [0, 0],
+    ])
+  ).toBe(12);
+});
 
 it("isCcw", () => {
   expect(
@@ -86,8 +118,9 @@ it("within", () => {
         [10, 10],
         [-10, 10],
         [-10, -10],
-      ],
-      { includeBorder: true }
+      ], {
+        includeBorder: true
+      }
     )
   ).toBeTruthy();
 
@@ -113,8 +146,9 @@ it("within", () => {
         [10, 10],
         [-10, 10],
         [-10, -10],
-      ],
-      { includeBorder: true }
+      ], {
+        includeBorder: true
+      }
     )
   ).toBeTruthy();
 

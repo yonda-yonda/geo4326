@@ -13,7 +13,8 @@ export function _toRadians(degree: number): number {
   return degree * (Math.PI / 180);
 }
 
-export function isCcw(linearRing: Points): boolean {
+
+export function _area(linearRing: Points): number {
   validLinearRing(linearRing);
   let area = 0.0;
   const length = linearRing.length - 1;
@@ -24,7 +25,17 @@ export function isCcw(linearRing: Points): boolean {
       linearRing[i][1] * linearRing[i + 1][0];
   }
 
-  return area >= 0;
+  return area / 2;
+}
+
+
+export function area(linearRing: Points): number {
+  return Math.abs(_area(linearRing));
+}
+
+
+export function isCcw(linearRing: Points): boolean {
+  return _area(linearRing) >= 0;
 }
 
 type withinOptions = {
@@ -102,14 +113,14 @@ export function intersection(
 
   if (
     ((p1[0] - p2[0]) * (p3[1] - p1[1]) + (p1[1] - p2[1]) * (p1[0] - p3[0])) *
-      ((p1[0] - p2[0]) * (p4[1] - p1[1]) + (p1[1] - p2[1]) * (p1[0] - p4[0])) >
+    ((p1[0] - p2[0]) * (p4[1] - p1[1]) + (p1[1] - p2[1]) * (p1[0] - p4[0])) >
     0
   )
     return false;
 
   if (
     ((p3[0] - p4[0]) * (p1[1] - p3[1]) + (p3[1] - p4[1]) * (p3[0] - p1[0])) *
-      ((p3[0] - p4[0]) * (p2[1] - p3[1]) + (p3[1] - p4[1]) * (p3[0] - p2[0])) >
+    ((p3[0] - p4[0]) * (p2[1] - p3[1]) + (p3[1] - p4[1]) * (p3[0] - p2[0])) >
     0
   )
     return false;
@@ -138,8 +149,8 @@ export function selfintersection(linearRing: Points): boolean {
     return (
       Math.abs(
         linearRing[0][1] * (linearRing[1][0] - linearRing[2][0]) +
-          linearRing[1][1] * (linearRing[2][0] - linearRing[0][0]) +
-          linearRing[2][1] * (linearRing[0][0] - linearRing[1][0])
+        linearRing[1][1] * (linearRing[2][0] - linearRing[0][0]) +
+        linearRing[2][1] * (linearRing[0][0] - linearRing[1][0])
       ) < EPSILON
     );
 
