@@ -90,6 +90,9 @@ transform.geojsonFromCornerCoordinates(
 Linear ring enclosing the pole is transformed to polar sterographic projections once.  
 `Source CRS -> polar sterographic projections (EPSG:3995, EPSG:3031) -> EPSG:4326`
 
-Don't support linear ring that is not enclosing the pole and straddling the antimeridian many times.
+Not support following linear rings.
+
+- enclosing the pole and straddling the antimeridian many times
+- enclosing the two poles.
 
 Input polygon must be less than 360deg in width and less than 180deg in height, in EPSG:4326.
