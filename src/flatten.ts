@@ -173,3 +173,44 @@ export function cutRingAtAntimeridian(
   }
   return ret;
 }
+
+export function expandRingAtAntimeridian(linearRing: Points): Points {
+  validLinearRing(linearRing);
+  const crossingPoints: { from: number, to: number }[] = [];
+  for (let i = 0; i < linearRing.length - 1; i++) {
+    if (_isCrossingAntimeridian(linearRing[i][0], linearRing[i + 1][0])) {
+      crossingPoints.push({
+        from: i,
+        to: i + 1,
+      });
+    }
+  }
+
+  if (crossingPoints.length < 2)
+    return linearRing
+
+  const ring = [...linearRing];
+
+  let before = 0;
+  for (let i = 0; i < crossingPoints.length; i++) {
+    const startTo = crossingPoints[i].to;
+    const startFrom = crossingPoints[i].from
+    const warp = ring[startTo][0] * ring[startFrom][0] < 0;
+    const endFrom = i < crossingPoints.length - 1 ? crossingPoints[i + 1].from : ring.length;
+
+    if (warp) {
+      if (ring[startTo][0] < 0) {
+        for (let j = startTo; j < endFrom; j++) {
+          ring[j][0] += 360;
+        }
+      }
+      else {
+        for (let j = before; j <= startFrom; j++) {
+          ring[j][0] += 360;
+        }
+      }
+    }
+    before = endFrom;
+  }
+  return ring;
+}

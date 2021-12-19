@@ -199,12 +199,13 @@ transform.geojsonFromLinearRing([
 
 ### props
 
-| Name              | Type                        | Description                                                      |
-| ----------------- | --------------------------- | ---------------------------------------------------------------- |
-| linearRing        | [Points](./TYPES.md#points) | **REQUIRED.** LinearRing.                                        |
-| srcCrs            | string, number              | **REQUIRED.** proj4string of source CRS or EPSG code.            |
-| options           | object                      | optional params.                                                 |
-| options.partition | number                      | Number of cutting each edge. Recommends more than 9. (DEFAULT=9) |
+| Name              | Type                        | Description                                                                                 |
+| ----------------- | --------------------------- | ------------------------------------------------------------------------------------------- |
+| linearRing        | [Points](./TYPES.md#points) | **REQUIRED.** LinearRing.                                                                   |
+| srcCrs            | string, number              | **REQUIRED.** proj4string of source CRS or EPSG code.                                       |
+| options           | object                      | optional params.                                                                            |
+| options.partition | number                      | Number of cutting each edge. Recommends more than 9. (DEFAULT=9)                            |
+| options.expand    | boolean                     | If True, linearRing straddling the Antimeridian convert to Polygon, otherwise MultiPolygon. |
 
 ### return
 

@@ -3,7 +3,7 @@ import type { Feature, Position } from "geojson";
 import { Points, CutRing } from "./types";
 import { validLinearRing } from "./_validates";
 import { isCcw, within, intersection, getCrs } from "./utils";
-import { CrossingLat, cutRingAtAntimeridian } from "./flatten";
+import { CrossingLat, cutRingAtAntimeridian, expandRingAtAntimeridian } from "./flatten";
 import { linearInterpolationY, linearInterpolationPoints } from "./calc";
 import {
   InvalidLinearRingEnclosingPoleError,
@@ -174,7 +174,7 @@ export function transformRing(
 
   let interpolatedLinearRing: Points = [];
   for (let i = 0; i < length; i++) {
-    const transformed = linearInterpolationPoints(
+    const interpolated = linearInterpolationPoints(
       linearRing[i],
       linearRing[i + 1],
       {
@@ -182,7 +182,7 @@ export function transformRing(
       }
     );
     interpolatedLinearRing = interpolatedLinearRing.concat(
-      transformed.slice(0, transformed.length - 1)
+      interpolated.slice(0, interpolated.length - 1)
     );
   }
   interpolatedLinearRing.push(interpolatedLinearRing[0]);
@@ -295,6 +295,7 @@ export function geojsonFromLinearRing(
   const options = Object.assign(
     {
       partition: 9,
+      expand: false,
     },
     userOptions
   );
@@ -320,6 +321,24 @@ export function geojsonFromLinearRing(
       geometry: { type: "Polygon", coordinates: [points] },
     };
   }
+  if (options.expand) {
+    const expanded = expandRingAtAntimeridian(points);
+    const xs = expanded.map((p) => {
+      return p[0];
+    });
+    return {
+      type: "Feature",
+      bbox: [
+        Math.min(...xs),
+        Math.min(...ys),
+        Math.max(...xs),
+        Math.max(...ys),
+      ],
+      properties: {},
+      geometry: { type: "Polygon", coordinates: [expanded] },
+    };
+  }
+
   const ring = cutRingAtAntimeridian(points);
   let xs1: number[] = [];
   ring.within.forEach((lenearRing: Points) => {

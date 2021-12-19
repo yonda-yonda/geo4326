@@ -56,3 +56,45 @@ flatten.cutRingAtAntimeridian(
 #### return
 
 object([CutRing](./TYPES.md#cutring))
+
+## expandRingAtAntimeridian
+
+```JavaScript
+import { flatten } from "geo4326";
+flatten.expandRingAtAntimeridian(
+    [
+      [175, 40],
+      [185, 38],
+      [185, 35],
+      [185, 32],
+      [175, 30],
+      [185, 30],
+      [200, 30],
+      [200, 40],
+      [185, 40],
+      [175, 40],
+    ]
+)
+// [
+//   [175, 40],
+//   [185, 38],
+//   [185, 35],
+//   [185, 32],
+//   [175, 30],
+//   [185, 30],
+//   [200, 30],
+//   [200, 40],
+//   [185, 40],
+//   [175, 40],
+// ]
+```
+
+#### props
+
+| Name       | Type                        | Description                                                                                                  |
+| ---------- | --------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| linearRing | [Points](./TYPES.md#points) | **REQUIRED.** Source linear ring. The distance in the longitude between the points must be less than 180deg. |
+
+#### return
+
+linearRing([Points](./TYPES.md#points))
