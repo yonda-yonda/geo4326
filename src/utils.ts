@@ -13,7 +13,6 @@ export function _toRadians(degree: number): number {
   return degree * (Math.PI / 180);
 }
 
-
 export function _area(linearRing: Points): number {
   validLinearRing(linearRing);
   let area = 0.0;
@@ -28,11 +27,9 @@ export function _area(linearRing: Points): number {
   return area / 2;
 }
 
-
 export function area(linearRing: Points): number {
   return Math.abs(_area(linearRing));
 }
-
 
 export function isCcw(linearRing: Points): boolean {
   return _area(linearRing) >= 0;
