@@ -88,3 +88,9 @@ export class InvalidCodeError extends CustomError {
     super(m);
   }
 }
+
+export class InvalidSimplifyError extends CustomError {
+  constructor(m = "arguments of simplify is invalid.") {
+    super(m);
+  }
+}
