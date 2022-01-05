@@ -5,6 +5,12 @@ abstract class CustomError extends Error {
   }
 }
 
+export class InvalidNumberError extends CustomError {
+  constructor(m = "not number.") {
+    super(m);
+  }
+}
+
 export class InvalidPointError extends CustomError {
   constructor(m = "point must be number array and have length 2 or more.") {
     super(m);

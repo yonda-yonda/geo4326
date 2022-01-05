@@ -1,22 +1,32 @@
-import type { Position } from "geojson";
-import { Points } from "./types";
 import {
+  InvalidNumberError,
   InvalidPointError,
   InvalidPointsError,
   InvalidLinearRingError,
 } from "./errors";
 
-export function validPoint(point: Position): void {
-  if (!Array.isArray(point)) throw new InvalidPointError();
-  if (point.length < 2) throw new InvalidPointError();
-  point.forEach((v) => {
-    if (typeof v !== "number") throw new InvalidPointError();
-  });
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
+export function validNumber(v: any): void {
+  if (typeof v !== "number" || v - v !== 0) throw new InvalidNumberError();
 }
 
-export function validPoints(points: Points): void {
-  if (!Array.isArray(points)) throw new InvalidPointsError();
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
+export function validPoint(point: any): void {
   try {
+    if (!Array.isArray(point)) throw new Error();
+    if (point.length < 2) throw new Error();
+    point.forEach((v) => {
+      validNumber(v);
+    });
+  } catch {
+    throw new InvalidPointError();
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
+export function validPoints(points: any): void {
+  try {
+    if (!Array.isArray(points)) throw new Error();
     points.forEach((p) => {
       validPoint(p);
     });
@@ -25,12 +35,15 @@ export function validPoints(points: Points): void {
   }
 }
 
-export function validLinearRing(points: Points): void {
-  validPoints(points);
-  if (
-    points.length <= 3 ||
-    points[0][0] !== points[points.length - 1][0] ||
-    points[0][1] !== points[points.length - 1][1]
-  )
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
+export function validLinearRing(points: any): void {
+  try {
+    validPoints(points);
+    if (
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      points.length <= 3 || points[0][0] !== points[points.length - 1][0] || points[0][1] !== points[points.length - 1][1]
+    ) throw new Error();
+  } catch {
     throw new InvalidLinearRingError();
+  }
 }
