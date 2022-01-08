@@ -6,3 +6,4 @@ export * as calc from "./calc";
 export * as flatten from "./flatten";
 export * as spheroid from "./spheroid";
 export * as transform from "./transform";
+export * as simplify from "./simplify";
