@@ -40,7 +40,7 @@ transform.transformRing(
 
 ```JavaScript
 import { transform } from "geo4326";
-transform.transformRing(
+transform.transformBbox(
   [382200, 2279400, 610500, 2512500],
   "+proj=utm +zone=45 +datum=WGS84 +units=m +no_defs"
 )
@@ -54,12 +54,12 @@ transform.transformRing(
 
 ### props
 
-| Name              | Type                        | Description                                                      |
-| ----------------- | --------------------------- | ---------------------------------------------------------------- |
-| srcBbox           | [Points](./TYPES.md#points) | **REQUIRED.** Source Bbox.                                       |
-| srcCrs            | string, number              | **REQUIRED.** proj4string of source CRS or EPSG code.            |
-| options           | object                      | optional params.                                                 |
-| options.partition | number                      | Number of cutting each edge. Recommends more than 9. (DEFAULT=9) |
+| Name              | Type           | Description                                                      |
+| ----------------- | -------------- | ---------------------------------------------------------------- |
+| srcBbox           | number[]       | **REQUIRED.** Source Bbox.                                       |
+| srcCrs            | string, number | **REQUIRED.** proj4string of source CRS or EPSG code.            |
+| options           | object         | optional params.                                                 |
+| options.partition | number         | Number of cutting each edge. Recommends more than 9. (DEFAULT=9) |
 
 ### return
 
