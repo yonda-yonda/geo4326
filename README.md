@@ -2,8 +2,8 @@
 
 geo4326 is utilities for geospatial vector data.
 
-- create a polygon of EPSG:4326 from other projection coordinates.
-- cut a polygon of EPSG:4326 at the Antimeridian.
+- create a polygon of CRS84 from other projection coordinates.
+- cut a polygon of CRS84 at the Antimeridian.
 - measure distace and area on the WGS 84 ellipsoid.
 
 Depends: proj4, epsg-index
@@ -87,6 +87,8 @@ transform.geojsonFromCornerCoordinates(
 
 ## note
 
+In codes, EPSG:4326 means `urn:ogc:def:crs:OGC:1.3:CRS84`(Axes: lon/lat).
+
 Linear ring enclosing the pole is transformed to polar sterographic projections once.  
 `Source CRS -> polar sterographic projections (EPSG:3995, EPSG:3031) -> EPSG:4326`
 
@@ -95,4 +97,4 @@ Not support following linear rings.
 - enclosing the pole and straddling the antimeridian many times
 - enclosing the two poles.
 
-Input polygon must be less than 360deg in width and less than 180deg in height, in EPSG:4326.
+Input polygon must be less than 360deg in width and less than 180deg in height, in CRS84.
