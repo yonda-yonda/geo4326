@@ -426,7 +426,7 @@ const _multiPolygonArea = (
 
 export function area(
   data: Points | Feature | Geometry,
-  userOptions: AreaOptions
+  userOptions: AreaOptions = {}
 ): number {
   if (Array.isArray(data)) {
     return _area(data, userOptions);
