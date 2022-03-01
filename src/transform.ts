@@ -2,7 +2,7 @@ import proj4 from "proj4";
 import type { Feature, Position } from "geojson";
 import { Points, CutRing } from "./types";
 import { validLinearRing } from "./_validates";
-import { isCcw, within, intersection, getCrs } from "./utils";
+import { isCcw, within, intersection, getCrs, hasSingularity } from "./utils";
 import { CrossingLat, cutRingAtAntimeridian, expandRingAtAntimeridian } from "./flatten";
 import { linearInterpolationY, linearInterpolationPoints } from "./calc";
 import {
@@ -131,6 +131,7 @@ export function _transformEnclosingPoleRing(
   return ret;
 }
 
+
 export function transformRing(
   linearRing: Points,
   srcCrs: string | number,
@@ -149,11 +150,10 @@ export function transformRing(
     userOptions
   );
   const length = linearRing.length - 1;
-
   const northPole = _transform([[0, 90]], CRS_EPSG4326, srcCrs)[0];
-  const enclosingNorthPole = within(northPole, linearRing);
+  const enclosingNorthPole = !hasSingularity([northPole]) && within(northPole, linearRing);
   const southPole = _transform([[0, -90]], CRS_EPSG4326, srcCrs)[0];
-  const enclosingSouthPole = within(southPole, linearRing);
+  const enclosingSouthPole = !hasSingularity([southPole]) && within(southPole, linearRing);
 
   if (enclosingNorthPole && enclosingSouthPole)
     throw new EnclosingBothPolesError();

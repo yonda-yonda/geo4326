@@ -5,6 +5,7 @@ const {
   intersection,
   selfintersection,
   getCrs,
+  hasSingularity,
 } = require("../dist/utils.js");
 const {
   InvalidCodeError
@@ -283,4 +284,23 @@ it("getCrs", () => {
   expect(() => {
     getCrs("epsg:1");
   }).toThrowError(InvalidCodeError);
+});
+
+it("hasSingularity", () => {
+  expect(hasSingularity([
+    [10, 10],
+    [NaN, 1]
+  ])).toBeTruthy();
+  expect(hasSingularity([
+    [10, 10],
+    [0, 1]
+  ])).toBeFalsy();
+  expect(hasSingularity([
+    [Infinity, 10],
+    [0, 1]
+  ])).toBeTruthy();
+  expect(hasSingularity([
+    [-100, -Infinity],
+    [0, 1]
+  ])).toBeTruthy();
 });

@@ -25,9 +25,10 @@ const crsEpsg3411 =
   "+proj=stere +lat_0=90 +lat_ts=70 +lon_0=-45 +k=1 +x_0=0 +y_0=0 +a=6378273 +b=6356889.449 +units=m +no_defs";
 const crsEpsg3412 =
   "+proj=stere +lat_0=-90 +lat_ts=-70 +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378273 +b=6356889.449 +units=m +no_defs";
-const crc32645 = "+proj=utm +zone=45 +datum=WGS84 +units=m +no_defs";
+const crcEpsg32645 = "+proj=utm +zone=45 +datum=WGS84 +units=m +no_defs";
 const crsEpsg32660 = "+proj=utm +zone=60 +datum=WGS84 +units=m +no_defs";
 const crsEpsg3031 = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs "
+const crsEpsg3857 = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs";
 
 it("transform", () => {
   expect(
@@ -221,13 +222,30 @@ it("transformRing", () => {
   expect(
     transformRing(
       [
+        [0, 0],
+        [10000, 0],
+        [10000, 10000],
+        [0, 0],
+      ],
+      crsEpsg3857
+    )
+  ).toEqual([
+    [0, 0],
+    [0.08983152841195215, 0],
+    [0.08983152841195215, 0.08983149160840151],
+    [0, 0]
+  ]);
+
+  expect(
+    transformRing(
+      [
         [382200, 2512500],
         [382200, 2279400],
         [610500, 2279400],
         [610500, 2512500],
         [382200, 2512500],
       ],
-      crc32645
+      crcEpsg32645
     )
   ).toEqual([
     [85.85296718933643, 22.715665870841406],
@@ -438,7 +456,7 @@ it("transformRing", () => {
 });
 
 it("transformBbox", () => {
-  expect(transformBbox([382200, 2279400, 610500, 2512500], crc32645)).toEqual([
+  expect(transformBbox([382200, 2279400, 610500, 2512500], crcEpsg32645)).toEqual([
     85.85296718933643,
     20.610041795245515,
     88.07596179098903,
@@ -475,7 +493,7 @@ it("transformBbox", () => {
   ]);
 
   expect(
-    transformBbox([382200, 2279400, 10, 610500, 2512500, 50], crc32645)
+    transformBbox([382200, 2279400, 10, 610500, 2512500, 50], crcEpsg32645)
   ).toEqual([
     85.85296718933643,
     20.610041795245515,

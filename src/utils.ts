@@ -173,3 +173,12 @@ export function getCrs(code: string | number): string {
     throw new InvalidCodeError();
   }
 }
+
+export function hasSingularity(points: number[][]): boolean {
+  if (Array.isArray(points)) {
+    for (let i = 0; i < points.length; i++) {
+      if (Array.isArray(points[i]) && points[i].some((v) => isNaN(v) || v === Infinity || v === -Infinity)) return true;
+    }
+  }
+  return false;
+}
