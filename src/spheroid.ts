@@ -111,9 +111,27 @@ const _distance = (
       if (d1 > 0) {
         //b1
         theta = L_d;
-      } else {
-        // b2, b3
+      } else if (_eq(d1, 0)) {
+        // b2
         const Gamma = Math.sin(u1) ** 2;
+        const n0 =
+          (epsilon * Gamma) / (Math.sqrt(1 + epsilon * Gamma) + 1) ** 2;
+        const A = (1 + n0) * (1 + (5 / 4) * n0 ** 2);
+        return (1 - f) * a * A * Math.PI;
+      } else {
+        // b3
+        let cnt = 0;
+        let gamma0 = 0;
+        let Gamma = 0;
+        while (cnt < options.maxCount) {
+          Gamma = 1 - gamma0 ** 2;
+          const D = f * (1 + f) / 4 - 3 / 16 * f ** 2 * Gamma;
+          const gamma1 = q * (1 - D * Gamma);
+          if (Math.abs(gamma0 - gamma1) < options.truncation) break;
+          gamma0 = gamma1;
+          cnt += 1;
+        }
+        if (cnt >= options.maxCount) throw new NotConvergeCalculationError();
         const n0 =
           (epsilon * Gamma) / (Math.sqrt(1 + epsilon * Gamma) + 1) ** 2;
         const A = (1 + n0) * (1 + (5 / 4) * n0 ** 2);
