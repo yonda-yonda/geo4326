@@ -142,18 +142,26 @@ export function selfintersection(linearRing: Points): boolean {
     not support warp polygon.
   */
   validLinearRing(linearRing);
-  if (linearRing.length === 4)
+
+  const ring: number[][] = [];
+  for (let i = 0; i < linearRing.length - 1; i++) {
+    if (linearRing[i][0] !== linearRing[i + 1][0] || linearRing[i][1] !== linearRing[i + 1][1])
+      ring.push(linearRing[i]);
+  }
+  ring.push(linearRing[linearRing.length - 1]);
+  if (ring.length < 4) return false;
+  if (ring.length === 4)
     return (
       Math.abs(
-        linearRing[0][1] * (linearRing[1][0] - linearRing[2][0]) +
-        linearRing[1][1] * (linearRing[2][0] - linearRing[0][0]) +
-        linearRing[2][1] * (linearRing[0][0] - linearRing[1][0])
+        ring[0][1] * (ring[1][0] - ring[2][0]) +
+        ring[1][1] * (ring[2][0] - ring[0][0]) +
+        ring[2][1] * (ring[0][0] - ring[1][0])
       ) < EPSILON
     );
 
   const lines = [];
-  for (let i = 0; i < linearRing.length - 1; i++) {
-    lines.push([linearRing[i], linearRing[i + 1]]);
+  for (let i = 0; i < ring.length - 1; i++) {
+    lines.push([ring[i], ring[i + 1]]);
   }
 
   return _checkLinesintersection(lines);
