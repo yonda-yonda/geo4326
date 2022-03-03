@@ -57,6 +57,8 @@ const _distance = (
   const lat1 = _toRadians(p1[1]);
   const lon2 = _toRadians(p2[0]);
   const lat2 = _toRadians(p2[1]);
+  if (_eq(lon1, lon2) && _eq(lat1, lat2)) return 0; // At this time, not converge calculation.
+
   const a = options.semimajorAxis;
   const f = 1 / options.flattening;
   const lonDiff = lon2 - lon1;
