@@ -39,7 +39,7 @@ type withinOptions = {
   includeBorder?: boolean;
 };
 
-export function within(
+function _within(
   point: Position,
   linearRing: Points,
   userOptions: withinOptions = {}
@@ -47,9 +47,6 @@ export function within(
   /*
     Winding Number Algorithm
   */
-  validPoint(point);
-  validLinearRing(linearRing);
-
   const options = Object.assign(
     {
       includeBorder: false,
@@ -78,7 +75,18 @@ export function within(
   return Math.abs(theta) > 1;
 }
 
-export function intersection(
+
+export function within(
+  point: Position,
+  linearRing: Points,
+  userOptions?: withinOptions
+): boolean {
+  validPoint(point);
+  validLinearRing(linearRing);
+  return _within(point, linearRing, userOptions);
+}
+
+function _intersection(
   p1: Position,
   p2: Position,
   p3: Position,
@@ -88,10 +96,6 @@ export function intersection(
     When p1 -> p2, p3 -> p4 are crossing || points more than 3 are on a line,
     return True
   */
-  validPoint(p1);
-  validPoint(p2);
-  validPoint(p3);
-  validPoint(p4);
   if (p1[0] >= p2[0]) {
     if ((p1[0] < p3[0] && p1[0] < p4[0]) || (p2[0] > p3[0] && p2[0] > p4[0]))
       return false;
@@ -123,6 +127,19 @@ export function intersection(
     return false;
 
   return true;
+}
+
+export function intersection(
+  p1: Position,
+  p2: Position,
+  p3: Position,
+  p4: Position
+): boolean {
+  validPoint(p1);
+  validPoint(p2);
+  validPoint(p3);
+  validPoint(p4);
+  return _intersection(p1, p2, p3, p4);
 }
 
 const _checkLinesintersection = (lines: Position[][], start = 0): boolean => {
@@ -189,4 +206,36 @@ export function hasSingularity(points: number[][]): boolean {
     }
   }
   return false;
+}
+
+export function overlapping(l1: Points, l2: Points): boolean {
+  // Rareley, intersect of turf.js gets `Unable to complete output ring starting at...` error.
+  validLinearRing(l1);
+  validLinearRing(l2);
+
+  for (let i = 0; i < l1.length - 1; i++) {
+    if (_within(l1[i], l2, {
+      includeBorder: true
+    })) return true;
+  }
+  for (let i = 0; i < l1.length - 1; i++) {
+    for (let j = 0; j < l2.length - 1; j++) {
+      if (_intersection(l1[i], l1[i + 1], l2[j], l2[j + 1])) return true;
+    }
+  }
+
+  return false;
+}
+
+export function enclosing(inner: Points, outer: Points): boolean {
+  // Rareley, booleanCrosses of turf.js gets incorrect.
+  validLinearRing(inner);
+  validLinearRing(outer);
+
+  for (let i = 0; i < inner.length - 1; i++) {
+    if (!_within(inner[i], outer, {
+      includeBorder: true
+    })) return false;
+  }
+  return true;
 }
