@@ -128,3 +128,95 @@ utils.selfintersection([
 #### return
 
 boolean
+
+## hasSingularity
+
+Check containing singularity point.
+
+```JavaScript
+import { utils } from "geo4326";
+utils.hasSingularity([
+  [-10, -10],
+  [10, -10],
+  [10, NaN],
+  [-10, 10],
+  [-10, -10],
+])
+// true
+```
+
+#### props
+
+| Name   | Type                        | Description                  |
+| ------ | --------------------------- | ---------------------------- |
+| points | [Points](./TYPES.md#points) | **REQUIRED.** checked points |
+
+#### return
+
+boolean
+
+## overlapping
+
+Check whether two linear rings overlap.
+
+```JavaScript
+import { utils } from "geo4326";
+utils.overlapping([
+  [175.0, 1.0],
+  [190.0, 1.0],
+  [190.0, 10.0],
+  [175.0, 10.0],
+  [175.0, 1.0],
+], [
+  [170.0, 0.0],
+  [180.0, 0.0],
+  [180.0, 5.0],
+  [170.0, 5.0],
+  [170.0, 0.0],
+])
+// true
+```
+
+#### props
+
+| Name | Type                        | Description               |
+| ---- | --------------------------- | ------------------------- |
+| l1   | [Points](./TYPES.md#points) | **REQUIRED.** linear ring |
+| l2   | [Points](./TYPES.md#points) | **REQUIRED.** linear ring |
+
+#### return
+
+boolean
+
+## enclosing
+
+Check outer linear ring encloses inner linear ring.
+
+```JavaScript
+import { utils } from "geo4326";
+utils.enclosing([
+  [180.0, 5.0],
+  [185.0, 5.0],
+  [185.0, 10.0],
+  [180.0, 10.0],
+  [180.0, 5.0],
+], [
+  [170.0, 0.0],
+  [190.0, 0.0],
+  [190.0, 10.0],
+  [170.0, 10.0],
+  [170.0, 0.0],
+])
+// true
+```
+
+#### props
+
+| Name  | Type                        | Description               |
+| ----- | --------------------------- | ------------------------- |
+| inner | [Points](./TYPES.md#points) | **REQUIRED.** linear ring |
+| outer | [Points](./TYPES.md#points) | **REQUIRED.** linear ring |
+
+#### return
+
+boolean
