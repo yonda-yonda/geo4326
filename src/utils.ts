@@ -218,6 +218,11 @@ export function overlapping(l1: Points, l2: Points): boolean {
       includeBorder: true
     })) return true;
   }
+  for (let i = 0; i < l2.length - 1; i++) {
+    if (_within(l2[i], l1, {
+      includeBorder: true
+    })) return true;
+  }
   for (let i = 0; i < l1.length - 1; i++) {
     for (let j = 0; j < l2.length - 1; j++) {
       if (_intersection(l1[i], l1[i + 1], l2[j], l2[j + 1])) return true;
