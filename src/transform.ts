@@ -394,12 +394,13 @@ export function geojsonFromCornerCoordinates(
   const options = Object.assign(
     {
       partition: 9,
+      expand: false,
     },
     userOptions
   );
   return geojsonFromLinearRing(
     [upperLeft, lowerLeft, lowerRight, upperRight, upperLeft],
     srcCrs,
-    { partition: options.partition }
+    { partition: options.partition, expand: options.expand }
   );
 }
