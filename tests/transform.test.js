@@ -16,9 +16,7 @@ const {
   InvalidLinearRingEnclosingPoleError,
 } = require("../dist/errors.js");
 
-const {
-  CRS_EPSG4326
-} = require("../dist/constants.js");
+const { CRS_EPSG4326 } = require("../dist/constants.js");
 
 const crsEpsg4326 = CRS_EPSG4326;
 const crsEpsg3411 =
@@ -27,8 +25,10 @@ const crsEpsg3412 =
   "+proj=stere +lat_0=-90 +lat_ts=-70 +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378273 +b=6356889.449 +units=m +no_defs";
 const crcEpsg32645 = "+proj=utm +zone=45 +datum=WGS84 +units=m +no_defs";
 const crsEpsg32660 = "+proj=utm +zone=60 +datum=WGS84 +units=m +no_defs";
-const crsEpsg3031 = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs "
-const crsEpsg3857 = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs";
+const crsEpsg3031 =
+  "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs ";
+const crsEpsg3857 =
+  "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs";
 
 it("transform", () => {
   expect(
@@ -49,6 +49,10 @@ it("transform", () => {
     [10, 10],
     [-10, 10],
     [-10, -10],
+  ]);
+
+  expect(_transform([[0, 89]], crsEpsg4326, crsEpsg3857)).toEqual([
+    [0, 30240971.958386205],
   ]);
 
   expect(
@@ -233,7 +237,7 @@ it("transformRing", () => {
     [0, 0],
     [0.08983152841195215, 0],
     [0.08983152841195215, 0.08983149160840151],
-    [0, 0]
+    [0, 0],
   ]);
 
   expect(
@@ -413,7 +417,8 @@ it("transformRing", () => {
         [979561.568040528334677, 524643.59826003969647],
         [-1096140.177763625513762, 633075.779011003673077],
       ],
-      crsEpsg3411, {
+      crsEpsg3411,
+      {
         partition: 5,
       }
     )
@@ -456,7 +461,9 @@ it("transformRing", () => {
 });
 
 it("transformBbox", () => {
-  expect(transformBbox([382200, 2279400, 610500, 2512500], crcEpsg32645)).toEqual([
+  expect(
+    transformBbox([382200, 2279400, 610500, 2512500], crcEpsg32645)
+  ).toEqual([
     85.85296718933643,
     20.610041795245515,
     88.07596179098903,
@@ -525,8 +532,9 @@ it("geojsonFromLinearRing", () => {
         [-10, 10],
         [-10, -10],
       ],
-      crsEpsg4326, {
-        partition: 0
+      crsEpsg4326,
+      {
+        partition: 0,
       }
     )
   ).toEqual({
@@ -556,8 +564,9 @@ it("geojsonFromLinearRing", () => {
         [-10, 10],
         [-10, -10],
       ],
-      "EPSG:4326", {
-        partition: 0
+      "EPSG:4326",
+      {
+        partition: 0,
       }
     )
   ).toEqual({
@@ -587,8 +596,9 @@ it("geojsonFromLinearRing", () => {
         [-10, 10],
         [-10, -10],
       ],
-      crsEpsg4326, {
-        partition: 1
+      crsEpsg4326,
+      {
+        partition: 1,
       }
     )
   ).toEqual({
@@ -692,8 +702,9 @@ it("geojsonFromLinearRing", () => {
         [753000.0, 7247400.0],
         [508800.0, 7247400.0],
       ],
-      crsEpsg32660, {
-        partition: 1
+      crsEpsg32660,
+      {
+        partition: 1,
       }
     )
   ).toEqual({
@@ -743,27 +754,33 @@ it("geojsonFromLinearRing", () => {
         [753000.0, 7247400.0],
         [508800.0, 7247400.0],
       ],
-      crsEpsg32660, {
+      crsEpsg32660,
+      {
         expand: true,
-        partition: 0
+        partition: 0,
       }
     )
   ).toEqual({
-    "type": "Feature",
-    "properties": {},
-    "bbox": [177.17456390562776, 63.05068519969726, 182.42139297500023, 65.34932256544839],
-    "geometry": {
-      "type": "Polygon",
-      "coordinates": [
+    type: "Feature",
+    properties: {},
+    bbox: [
+      177.17456390562776,
+      63.05068519969726,
+      182.42139297500023,
+      65.34932256544839,
+    ],
+    geometry: {
+      type: "Polygon",
+      coordinates: [
         [
           [177.18908505580518, 65.34932256544839],
           [177.17456390562776, 63.13910500179646],
           [182.00724794658504, 63.05068519969726],
           [182.42139297500023, 65.25180997065199],
-          [177.18908505580518, 65.34932256544839]
-        ]
+          [177.18908505580518, 65.34932256544839],
+        ],
       ],
-    }
+    },
   });
 
   expect(
@@ -851,17 +868,22 @@ it("geojsonFromLinearRing", () => {
         [-3863378.14880046620965, -8429757.395874712616205],
         [4071086.651424143463373, -8429757.395874712616205],
         [4071086.651424143463373, -3403211.632381634786725],
-        [-3863378.14880046620965, -3403211.632381634786725]
+        [-3863378.14880046620965, -3403211.632381634786725],
       ],
       crsEpsg3031
     )
   ).toEqual({
-    "type": "Feature",
-    "properties": {},
-    "bbox": [129.89382721521977, -59.38390114093208, -131.37650663910156, -15.854026072268905],
-    "geometry": {
-      "type": "MultiPolygon",
-      "coordinates": [
+    type: "Feature",
+    properties: {},
+    bbox: [
+      129.89382721521977,
+      -59.38390114093208,
+      -131.37650663910156,
+      -15.854026072268905,
+    ],
+    geometry: {
+      type: "MultiPolygon",
+      coordinates: [
         [
           [
             [180, -21.546696071299067],
@@ -887,8 +909,8 @@ it("geojsonFromLinearRing", () => {
             [165.2293785584238, -58.40125878948846],
             [178.25207338432907, -59.38390114093208],
             [180, -59.30719369837912],
-            [180, -21.546696071299067]
-          ]
+            [180, -21.546696071299067],
+          ],
         ],
         [
           [
@@ -913,12 +935,12 @@ it("geojsonFromLinearRing", () => {
             [-170.02211706459093, -20.754581591818333],
             [-175.32335989563597, -21.394847659061156],
             [-180, -21.546696071299067],
-            [-180, -59.30719369837912]
-          ]
-        ]
+            [-180, -59.30719369837912],
+          ],
+        ],
       ],
-    }
-  })
+    },
+  });
 
   expect(
     geojsonFromLinearRing(
@@ -927,19 +949,25 @@ it("geojsonFromLinearRing", () => {
         [-3863378.14880046620965, -8429757.395874712616205],
         [4071086.651424143463373, -8429757.395874712616205],
         [4071086.651424143463373, -3403211.632381634786725],
-        [-3863378.14880046620965, -3403211.632381634786725]
+        [-3863378.14880046620965, -3403211.632381634786725],
       ],
-      crsEpsg3031, {
-        expand: true
+      crsEpsg3031,
+      {
+        expand: true,
       }
     )
   ).toEqual({
-    "type": "Feature",
-    "properties": {},
-    "bbox": [129.89382721521977, -59.38390114093208, 228.62349336089844, -15.854026072268905],
-    "geometry": {
-      "type": "Polygon",
-      "coordinates": [
+    type: "Feature",
+    properties: {},
+    bbox: [
+      129.89382721521977,
+      -59.38390114093208,
+      228.62349336089844,
+      -15.854026072268905,
+    ],
+    geometry: {
+      type: "Polygon",
+      coordinates: [
         [
           [228.62349336089844, -44.98838921218498],
           [224.6866667936371, -42.28850309827596],
@@ -981,10 +1009,10 @@ it("geojsonFromLinearRing", () => {
           [203.5464272868067, -56.76026264320489],
           [213.77945910512975, -53.54814436609983],
           [222.0526391944259, -49.521337215869536],
-          [228.62349336089844, -44.98838921218498]
-        ]
-      ]
-    }
+          [228.62349336089844, -44.98838921218498],
+        ],
+      ],
+    },
   });
 
   expect(
@@ -996,9 +1024,10 @@ it("geojsonFromLinearRing", () => {
         [-10, 10],
         [-10, -10],
       ],
-      crsEpsg4326, {
+      crsEpsg4326,
+      {
         partition: 0,
-        expand: true
+        expand: true,
       }
     )
   ).toEqual({
@@ -1018,7 +1047,6 @@ it("geojsonFromLinearRing", () => {
       ],
     },
   });
-
 });
 
 it("geojsonFromCornerCoordinates", () => {
@@ -1162,7 +1190,8 @@ it("geojsonFromCornerCoordinates", () => {
       [508800.0, 7001100.0],
       [753000.0, 7247400.0],
       [753000.0, 7001100.0],
-      crsEpsg32660, {
+      crsEpsg32660,
+      {
         partition: 1,
       }
     )
@@ -1272,8 +1301,9 @@ it("invalid", () => {
         [335595.338145552086644, -515965.637927847041283],
         [223069.075613658875227, -268407.860357680357993],
       ],
-      crsEpsg3411, {
-        partition: 0
+      crsEpsg3411,
+      {
+        partition: 0,
       }
     );
   }).toThrowError(InvalidLinearRingEnclosingPoleError);
@@ -1287,8 +1317,9 @@ it("invalid", () => {
         [335595.338145552086644, -515965.637927847041283],
         [223069.075613658875227, -268407.860357680357993],
       ],
-      crsEpsg3411, {
-        partition: 0
+      crsEpsg3411,
+      {
+        partition: 0,
       }
     );
   }).toThrowError(InvalidLinearRingEnclosingPoleError);
@@ -1306,8 +1337,9 @@ it("invalid", () => {
         [-75669.763632582500577, 1770384.312178276944906],
         [-1246746.554110115393996, 698551.317503924481571],
       ],
-      crsEpsg3411, {
-        partition: 5
+      crsEpsg3411,
+      {
+        partition: 5,
       }
     );
   }).toThrowError(InvalidLinearRingEnclosingPoleError);

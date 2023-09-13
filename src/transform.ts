@@ -150,9 +150,9 @@ export function transformRing(
     userOptions
   );
   const length = linearRing.length - 1;
-  const northPole = _transform([[0, 90]], CRS_EPSG4326, srcCrs)[0];
+  const northPole = _transform([[0, 89]], CRS_EPSG4326, srcCrs)[0]; // approximate 90deg
   const enclosingNorthPole = !hasSingularity([northPole]) && within(northPole, linearRing);
-  const southPole = _transform([[0, -90]], CRS_EPSG4326, srcCrs)[0];
+  const southPole = _transform([[0, -89]], CRS_EPSG4326, srcCrs)[0]; // approximate -90deg
   const enclosingSouthPole = !hasSingularity([southPole]) && within(southPole, linearRing);
 
   if (enclosingNorthPole && enclosingSouthPole)

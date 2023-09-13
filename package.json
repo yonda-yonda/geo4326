@@ -26,7 +26,7 @@
     "@types/geojson": "^7946.0.8",
     "@types/proj4": "^2.5.2",
     "epsg-index": "^1.2.0",
-    "proj4": "^2.7.5"
+    "proj4": "^2.9.0"
   },
   "repository": {
     "type": "git",
