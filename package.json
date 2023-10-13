@@ -1,6 +1,6 @@
 {
   "name": "geo4326",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "geo4326 converts footprint of satellite to polygon of EPSG:4326.",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -26,7 +26,8 @@
     "@types/geojson": "^7946.0.8",
     "@types/proj4": "^2.5.2",
     "epsg-index": "^1.2.0",
-    "proj4": "^2.9.0"
+    "proj4": "^2.9.1",
+    "satellite.js": "^5.0.0"
   },
   "repository": {
     "type": "git",
