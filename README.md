@@ -6,7 +6,7 @@ geo4326 is utilities for geospatial vector data.
 - cut a polygon of CRS84 at the Antimeridian.
 - measure distace and area on the WGS 84 ellipsoid.
 
-Depends: proj4, epsg-index
+Depends: proj4, epsg-index, satellite.js
 
 ## Documens
 

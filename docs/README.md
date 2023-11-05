@@ -9,4 +9,5 @@ geo4326 is utilities for geospatial vector data.
 - [flatten](FLATTEN.md)
 - [spheroid](SPHEROID.md)
 - [transform](TRANSFORM.md)
+- [satellite](SATELLITE.md)
 - [utils](UTILS.md)

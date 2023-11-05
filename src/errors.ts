@@ -100,3 +100,9 @@ export class InvalidSimplifyError extends CustomError {
     super(m);
   }
 }
+
+export class LookingAwayError extends CustomError {
+  constructor(m = "not found ground point.") {
+    super(m);
+  }
+}

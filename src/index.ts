@@ -4,6 +4,7 @@ export * as errors from "./errors";
 export * as utils from "./utils";
 export * as calc from "./calc";
 export * as flatten from "./flatten";
+export * as satellite from "./satellite";
 export * as spheroid from "./spheroid";
 export * as transform from "./transform";
 export * as simplify from "./simplify";
