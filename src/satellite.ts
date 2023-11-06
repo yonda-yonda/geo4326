@@ -542,16 +542,18 @@ export const accessArea = (
 
                 startEdgePositions = [];
             } else if (across < 1) {
+                const current = _getNadir(positionAndVelocity, gmst);
                 if (across === 0) {
-                    leftTrack.push(leftPositions[0]);
-                    rightTrack.push(rightPositions[0]);
+                    if (Math.abs(current[0] - reference[0]) >= 180) {
+                        across = -1;
+                    } else {
+                        leftTrack.push(leftPositions[0]);
+                        rightTrack.push(rightPositions[0]);
+                    }
                 }
                 if (across < 0) {
                     leftTrack = leftTrack.concat(leftPositions);
                     rightTrack = rightTrack.concat(rightPositions);
-
-                    leftTrack.push(leftPositions[leftPositions.length - 1]);
-                    rightTrack.push(rightPositions[rightPositions.length - 1]);
                     let linearRing = [rightTrack[0], ...startEdgePositions, ...leftTrack];
 
                     const endeEdgePositions = (startEdgePositions = _getEdge(
@@ -580,7 +582,7 @@ export const accessArea = (
 
                 leftVectors = [leftVector];
                 rightVectors = [rightVector];
-                reference = _getNadir(positionAndVelocity, gmst);
+                reference = current;
                 leftPositions = [toLonLat(leftLocation, reference)];
                 rightPositions = [toLonLat(rightLocation, reference)];
                 onboardIndex = 1;
