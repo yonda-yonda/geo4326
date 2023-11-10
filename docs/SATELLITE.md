@@ -100,18 +100,16 @@ satellite.footprint(tle1[0], tle1[1], date, {
 
 #### props
 
-| Name                                                           | Type     | Description                                                                      |
-| -------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------- |
-| tle1                                                           | string   | **REQUIRED.** TLE's line 1.                                                      |
-| tle2                                                           | string   | **REQUIRED.** TLE's line 2.                                                      |
-| date                                                           | Date     | **REQUIRED.** target time.                                                       |
-| options                                                        | object   | optional params.                                                                 |
-| options.insert                                                 | number   | number of insert points on an each edge. (DEFAULT=5)                             |
-| options.fov                                                    | number[] | virtual field-of-view. [along track, cross track] in degrees. (DEFAULT=[15, 15]) |
-| options.a                                                      | number   |
-| semi-major axis of central celestial body (DEFAULT=6378.137)   |
-| options.f                                                      | number   |
-| oblateness of central celestial body (DEFAULT=1/298.257223563) |
+| Name           | Type     | Description                                                                      |
+| -------------- | -------- | -------------------------------------------------------------------------------- |
+| tle1           | string   | **REQUIRED.** TLE's line 1.                                                      |
+| tle2           | string   | **REQUIRED.** TLE's line 2.                                                      |
+| date           | Date     | **REQUIRED.** target time.                                                       |
+| options        | object   | optional params.                                                                 |
+| options.insert | number   | number of insert points on an each edge. (DEFAULT=5)                             |
+| options.fov    | number[] | virtual field-of-view. [along track, cross track] in degrees. (DEFAULT=[15, 15]) |
+| options.a      | number   | semi-major axis of central celestial body (DEFAULT=6378.137)                     |
+| options.f      | number   | oblateness of central celestial body (DEFAULT=1/298.257223563)                   |
 
 #### return
 
@@ -147,20 +145,17 @@ satellite.accessArea(tle1[0], tle1[1], start, end, {
 
 #### props
 
-| Name    | Type   | Description                 |
-| ------- | ------ | --------------------------- |
-| tle1    | string | **REQUIRED.** TLE's line 1. |
-| tle2    | string | **REQUIRED.** TLE's line 2. |
-| start   | Date   | **REQUIRED.** start time.   |
-| end     | Date   | **REQUIRED.** end time.     |
-| options | object | optional params.            |
-
-| options.split | number | dt = orbitperiod / split (DEFAULT=360) |
-| options.roll | number | roll angle in degrees. (DEFAULT=10) |
-| options.a | number |
-| semi-major axis of central celestial body (DEFAULT=6378.137) |
-| options.f | number |
-| oblateness of central celestial body (DEFAULT=1/298.257223563) |
+| Name          | Type   | Description                                                    |
+| ------------- | ------ | -------------------------------------------------------------- |
+| tle1          | string | **REQUIRED.** TLE's line 1.                                    |
+| tle2          | string | **REQUIRED.** TLE's line 2.                                    |
+| start         | Date   | **REQUIRED.** start time.                                      |
+| end           | Date   | **REQUIRED.** end time.                                        |
+| options       | object | optional params.                                               |
+| options.split | number | dt = orbitperiod / split (DEFAULT=360)                         |
+| options.roll  | number | roll angle in degrees. (DEFAULT=10)                            |
+| options.a     | number | semi-major axis of central celestial body (DEFAULT=6378.137)   |
+| options.f     | number | oblateness of central celestial body (DEFAULT=1/298.257223563) |
 
 #### return
 
