@@ -1,4 +1,12 @@
-const { unit, norm, add, multiple, dot, cross } = require("../dist/vector.js");
+const {
+  unit,
+  norm,
+  add,
+  multiple,
+  dot,
+  cross,
+  rodoriguesRotate,
+} = require("../dist/vector.js");
 
 it("norm", () => {
   expect(norm({ x: 1, y: 2, z: 2 })).toBe(3);
@@ -38,5 +46,15 @@ it("cross", () => {
     x: -3,
     y: 6,
     z: -3,
+  });
+});
+
+it("rodoriguesRotate", () => {
+  expect(
+    rodoriguesRotate({ x: 1, y: 0, z: 0 }, 180, { x: 2, y: 1, z: 0 })
+  ).toEqual({
+    x: 2,
+    y: -1,
+    z: 1.2246467991473532e-16,
   });
 });

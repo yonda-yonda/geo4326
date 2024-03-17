@@ -8,7 +8,7 @@ import {
 } from "satellite.js";
 
 import {
-    unit, cross, add, dot, multiple
+    unit, cross, add, dot, multiple, rodoriguesRotate
 } from "./vector";
 
 import { LookingAwayError } from "./errors";
@@ -39,7 +39,6 @@ export const nadir = (tleLine1: string, tleLine2: string, date: Date): Position 
 
     return _getNadir(positionAndVelocity, gmst);
 }
-
 
 export interface SubSatelliteTrackOptions {
     split?: number;
@@ -162,7 +161,8 @@ export const toLonLat = (point: GeodeticLocation, reference?: number[]): Positio
 
 export interface FootprintOptions {
     insert?: number;
-    fov?: number[]; // [along track, cross track] [deg]
+    fov?: [number, number]; // [deg] [along track, cross track]
+    offnadir?: number; // [deg] "+" means left side, "-" means right side.
     a?: number; // [km]
     f?: number;
 }
@@ -176,15 +176,14 @@ const _getFootprint = (
             insert: 5,
             fov: [15, 15],
             a: 6378.137, // WGS84
-            f: 1 / 298.257223563 // WGS84
+            f: 1 / 298.257223563,// WGS84
+            offnadir: 0
         },
         userOptions
     );
     if (typeof positionAndVelocity.position === "boolean" || typeof positionAndVelocity.velocity === "boolean") {
         throw TypeError("positionAndVelocity has not a number.");
     }
-
-    const center = _getNadir(positionAndVelocity, gmst);
 
     const [f1, f2] = [(options.fov[0] * Math.PI) / 180, (options.fov[1] * Math.PI) / 180];
     const f3 = Math.atan(Math.sqrt(Math.tan(f1) ** 2 + Math.tan(f2) ** 2));
@@ -213,16 +212,20 @@ const _getFootprint = (
 
     const length = options.insert + 1;
 
-    const ez = multiple(unit(positionAndVelocity.position), -1);
+    const ex = unit(positionAndVelocity.velocity);
+    const ez = unit(rodoriguesRotate(ex, options.offnadir, multiple(positionAndVelocity.position, -1)));
     const ey = unit(
         cross(
-            positionAndVelocity.position,
-            positionAndVelocity.velocity,
+            ez,
+            ex,
         )
     );
-    const ex = unit(cross(ey, ez));
+
     const a = options.a;
     const b = a * (1 - options.f);
+
+    const nadir = _getNadir(positionAndVelocity, gmst);
+    const center = toLonLat(eciToGeodetic(getGroundObservingPosition(positionAndVelocity.position, { x: 0, y: 0, z: 1 }, a, b, ex, ey, ez), gmst), nadir)
 
     const positions = [
         getGroundObservingPosition(positionAndVelocity.position, rf, a, b, ex, ey, ez),
@@ -285,7 +288,6 @@ const _getFootprint = (
     const lonlats = positions.map((position) => {
         return toLonLat(eciToGeodetic(position, gmst), center);
     });
-
     return [...lonlats, lonlats[0]];
 }
 
@@ -299,7 +301,7 @@ export const footprint = (tleLine1: string, tleLine2: string, date: Date, userOp
 
 export interface AccessAreaOptions {
     split?: number;
-    roll?: number; // [deg]
+    roll?: number | [number, number]; // [deg] If array, left side is larger value, left side is smaller value.
     a?: number; // [km]
     f?: number;
     insert?: number;
@@ -313,17 +315,18 @@ const _getEdge = (
     ex: EciVec3<number>,
     ey: EciVec3<number>,
     ez: EciVec3<number>,
-    f3: number,
+    rolls: number[],
     insert: number,
     reference: number[],
     start: boolean
 ): Points => {
     const edgePositions: Points = [];
-    const direction = start ? 1 : -1;
+    const theta0 = start ? rolls[0] : rolls[1];
     const length = insert + 1;
-    for (let i = 1; i < length; i++) {
-        const theta = direction * (f3 - (i * 2 * f3) / length);
+    const delta = (start ? 1 : -1) * (rolls[1] - rolls[0]) / length;
 
+    for (let i = 1; i < length; i++) {
+        const theta = theta0 + i * delta;
         edgePositions.push(
             toLonLat(
                 eciToGeodetic(
@@ -331,7 +334,7 @@ const _getEdge = (
                         satellitePosition,
                         {
                             x: 0,
-                            y: Math.sin(theta),
+                            y: -Math.sin(theta),
                             z: Math.cos(theta),
                         },
                         a,
@@ -374,8 +377,6 @@ export const accessArea = (
     const orbitPeriod = (2 * Math.PI) / (meanMotion / 60); // [sec]
     const dt = orbitPeriod / options.split;
 
-    const f3 = (options.roll * Math.PI) / 180;
-
     let leftVectors: EciVec3<number>[] = [];
     let rightVectors: EciVec3<number>[] = [];
     let startEdgePositions: Points = [];
@@ -388,9 +389,31 @@ export const accessArea = (
     let leftTrack: Points = [];
     let rightTrack: Points = [];
 
-    const linearRings: Points[] = [];
+    const a = options.radius;
+    const b = a * (1 - options.f);
 
+    const rolls: number[] = [];
+    if (Array.isArray(options.roll)) {
+        rolls.push(Math.max(...options.roll) * Math.PI / 180);
+        rolls.push(Math.min(...options.roll) * Math.PI / 180);
+    } else {
+        rolls.push(Math.abs(options.roll) * Math.PI / 180);
+        rolls.push(-Math.abs(options.roll) * Math.PI / 180);
+    }
+    const l = {
+        x: 0,
+        y: -Math.sin(rolls[0]),
+        z: Math.cos(rolls[0]),
+    };
+    const r = {
+        x: 0,
+        y: -Math.sin(rolls[1]),
+        z: Math.cos(rolls[1]),
+    };
+
+    const linearRings: Points[] = [];
     const d = new Date(start.getTime());
+
     while (d < end) {
         const positionAndVelocity = propagate(satrec, d);
         if (
@@ -402,21 +425,18 @@ export const accessArea = (
 
         const gmst = gstime(d);
 
-        const ez = multiple(unit(positionAndVelocity.position), -1);
+        const ex = unit(positionAndVelocity.velocity);
+        const ez = unit(multiple(positionAndVelocity.position, -1));
         const ey = unit(
-            cross(positionAndVelocity.position, positionAndVelocity.velocity)
+            cross(
+                ez,
+                ex,
+            )
         );
-        const ex = unit(cross(ey, ez));
-        const a = options.radius;
-        const b = a * (1 - options.f);
 
         const leftVector = getGroundObservingPosition(
             positionAndVelocity.position,
-            {
-                x: 0,
-                y: Math.sin(-f3),
-                z: Math.cos(f3),
-            },
+            l,
             a,
             b,
             ex,
@@ -424,13 +444,10 @@ export const accessArea = (
             ez
         );
         const leftLocation = eciToGeodetic(leftVector, gmst);
+
         const rightVector = getGroundObservingPosition(
             positionAndVelocity.position,
-            {
-                x: 0,
-                y: Math.sin(f3),
-                z: Math.cos(f3),
-            },
+            r,
             a,
             b,
             ex,
@@ -450,7 +467,7 @@ export const accessArea = (
                 ex,
                 ey,
                 ez,
-                f3,
+                rolls,
                 options.insert,
                 reference,
                 true
@@ -475,9 +492,9 @@ export const accessArea = (
 
         if (onboardIndex > 1) {
             const vectorRing = [
-                ...leftVectors,
-                ...[...rightVectors].reverse(),
-                leftVectors[0],
+                ...rightVectors,
+                ...[...leftVectors].reverse(),
+                rightVectors[0],
             ];
             if (
                 within(
@@ -520,10 +537,10 @@ export const accessArea = (
                 rightTrack.push([middleRightPosition[0], polarLat]);
 
                 linearRings.push([
-                    rightTrack[0],
+                    leftTrack[0],
                     ...startEdgePositions,
-                    ...leftTrack,
-                    ...[...rightTrack].reverse(),
+                    ...rightTrack,
+                    ...[...leftTrack].reverse(),
                 ]);
 
                 leftVectors = [leftVector];
@@ -554,7 +571,7 @@ export const accessArea = (
                 if (across < 0) {
                     leftTrack = leftTrack.concat(leftPositions);
                     rightTrack = rightTrack.concat(rightPositions);
-                    let linearRing = [rightTrack[0], ...startEdgePositions, ...leftTrack];
+                    let linearRing = [leftTrack[0], ...startEdgePositions, ...rightTrack];
 
                     const endeEdgePositions = (startEdgePositions = _getEdge(
                         positionAndVelocity.position,
@@ -564,7 +581,7 @@ export const accessArea = (
                         ex,
                         ey,
                         ez,
-                        f3,
+                        rolls,
                         options.insert,
                         reference,
                         false
@@ -572,7 +589,7 @@ export const accessArea = (
 
                     linearRing = linearRing.concat([
                         ...endeEdgePositions,
-                        ...[...rightTrack].reverse(),
+                        ...[...leftTrack].reverse(),
                     ]);
                     linearRings.push(linearRing);
 
@@ -588,7 +605,7 @@ export const accessArea = (
                 onboardIndex = 1;
 
                 if (across < 0) {
-                    startEdgePositions = startEdgePositions = _getEdge(
+                    startEdgePositions = _getEdge(
                         positionAndVelocity.position,
                         gmst,
                         a,
@@ -596,7 +613,7 @@ export const accessArea = (
                         ex,
                         ey,
                         ez,
-                        f3,
+                        rolls,
                         options.insert,
                         reference,
                         true
@@ -612,7 +629,7 @@ export const accessArea = (
             leftTrack = leftTrack.concat(leftPositions);
             rightTrack = rightTrack.concat(rightPositions);
             if (leftTrack.length > 1 && rightTrack.length > 1) {
-                let linearRing = [rightTrack[0], ...startEdgePositions, ...leftTrack];
+                let linearRing = [leftTrack[0], ...startEdgePositions, ...rightTrack];
 
                 const endEdgePositions = _getEdge(
                     positionAndVelocity.position,
@@ -622,14 +639,14 @@ export const accessArea = (
                     ex,
                     ey,
                     ez,
-                    f3,
+                    rolls,
                     options.insert,
                     reference,
                     false
                 );
                 linearRing = linearRing.concat([
                     ...endEdgePositions,
-                    ...[...rightTrack].reverse(),
+                    ...[...leftTrack].reverse(),
                 ]);
                 linearRings.push(linearRing);
             }

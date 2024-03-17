@@ -42,3 +42,27 @@ export function cross(vec1: EciVec3<number>, vec2: EciVec3<number>): EciVec3<num
     z: vec1.x * vec2.y - vec1.y * vec2.x,
   }
 }
+
+export function rodoriguesRotate(axis: EciVec3<number>, degrees: number, vec: EciVec3<number>): EciVec3<number> {
+  // Rodrigues' rotation formula
+  // axis must be unit vector.
+  const radians = (degrees * Math.PI) / 180;
+
+  return {
+    x: dot({
+      x: axis.x ** 2 * (1 - Math.cos(radians)) + Math.cos(radians),
+      y: axis.x * axis.y * (1 - Math.cos(radians)) - axis.z * Math.sin(radians),
+      z: axis.x * axis.z * (1 - Math.cos(radians)) + axis.y * Math.sin(radians)
+    }, vec),
+    y: dot({
+      x: axis.x * axis.y * (1 - Math.cos(radians)) + axis.z * Math.sin(radians),
+      y: axis.y ** 2 * (1 - Math.cos(radians)) + Math.cos(radians),
+      z: axis.y * axis.z * (1 - Math.cos(radians)) - axis.x * Math.sin(radians)
+    }, vec),
+    z: dot({
+      x: axis.x * axis.z * (1 - Math.cos(radians)) - axis.y * Math.sin(radians),
+      y: axis.y * axis.z * (1 - Math.cos(radians)) + axis.x * Math.sin(radians),
+      z: axis.z ** 2 * (1 - Math.cos(radians)) + Math.cos(radians)
+    }, vec)
+  }
+}
