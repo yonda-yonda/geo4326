@@ -107,7 +107,7 @@ satellite.footprint(tle1[0], tle1[1], date, {
 | date           | Date     | **REQUIRED.** target time.                                                       |
 | options        | object   | optional params.                                                                 |
 | options.insert | number   | number of insert points on an each edge. (DEFAULT=5)                             |
-| options.fov    | number[] | virtual field-of-view. [along track, cross track] in degrees. (DEFAULT=[15, 15]) |
+| options.fov    | number[] | virtual field-of-view. [along track, cross track] in degrees. (DEFAULT=[30, 30]) |
 | options.a      | number   | semi-major axis of central celestial body (DEFAULT=6378.137)                     |
 | options.f      | number   | oblateness of central celestial body (DEFAULT=1/298.257223563)                   |
 
