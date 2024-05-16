@@ -1099,7 +1099,7 @@ it("footprint", () => {
 
   expect(
     footprint(tle1[0], tle1[1], new Date("2023-09-22T23:40:00Z"), {
-      fov: 50,
+      fov: 100,
     })
   ).toEqual([
     [90.54882281348486, 74.48201191370454],
@@ -1140,7 +1140,7 @@ it("footprint", () => {
 
   expect(
     footprint(tle1[0], tle1[1], new Date("2023-09-22T23:40:00Z"), {
-      fov: [50, 50],
+      fov: [100, 100],
     })
   ).toEqual([
     [90.54882281348486, 74.48201191370454],
@@ -1181,7 +1181,7 @@ it("footprint", () => {
 
   expect(
     footprint(tle1[0], tle1[1], new Date("2023-09-22T23:40:00Z"), {
-      fov: [50, 50],
+      fov: [100, 100],
       offnadir: -5,
     })
   ).toEqual([
@@ -1223,7 +1223,7 @@ it("footprint", () => {
 
   expect(() =>
     footprint(tle1[0], tle1[1], new Date("2023-09-21T20:00:00Z"), {
-      fov: [60, 60],
+      fov: [120, 120],
     })
   ).toThrowError(LookingAwayError);
 });
