@@ -161,7 +161,7 @@ export const toLonLat = (point: GeodeticLocation, reference?: number[]): Positio
 
 export interface FootprintOptions {
     insert?: number;
-    fov?: [number, number]; // [deg] [along track, cross track]
+    fov?: number | [number, number]; // [deg] [cross track, along track]
     offnadir?: number; // [deg] "+" means left side, "-" means right side.
     a?: number; // [km]
     f?: number;
@@ -174,7 +174,7 @@ const _getFootprint = (
     const options = Object.assign(
         {
             insert: 5,
-            fov: [15, 15],
+            fov: 15,
             a: 6378.137, // WGS84
             f: 1 / 298.257223563,// WGS84
             offnadir: 0
@@ -185,7 +185,8 @@ const _getFootprint = (
         throw TypeError("positionAndVelocity has not a number.");
     }
 
-    const [f1, f2] = [(options.fov[0] * Math.PI) / 180, (options.fov[1] * Math.PI) / 180];
+    const fov = Array.isArray(options.fov) ? options.fov : [options.fov, options.fov];
+    const [f1, f2] = [(fov[0] * Math.PI) / 180, (fov[1] * Math.PI) / 180];
     const f3 = Math.atan(Math.sqrt(Math.tan(f1) ** 2 + Math.tan(f2) ** 2));
     const f4 = Math.atan(Math.tan(f1) / Math.tan(f2));
 
