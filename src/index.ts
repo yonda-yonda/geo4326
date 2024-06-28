@@ -8,3 +8,4 @@ export * as satellite from "./satellite";
 export * as spheroid from "./spheroid";
 export * as transform from "./transform";
 export * as simplify from "./simplify";
+export * as terminator from "./terminator";
