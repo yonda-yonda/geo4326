@@ -1,658 +1,772 @@
-
-import type {
-    Position,
-} from "geojson";
+import type { Position } from "geojson";
 import {
-    propagate, gstime, twoline2satrec,
-    eciToGeodetic, degreesLong, degreesLat, PositionAndVelocity, EciVec3, GeodeticLocation
+  propagate,
+  gstime,
+  twoline2satrec,
+  eciToGeodetic,
+  degreesLong,
+  degreesLat,
+  PositionAndVelocity,
+  EciVec3,
+  GeodeticLocation,
 } from "satellite.js";
 
-import {
-    unit, cross, add, dot, multiple, rodoriguesRotate
-} from "./vector";
+import { unit, cross, add, dot, multiple, rodoriguesRotate } from "./vector";
 
 import { LookingAwayError } from "./errors";
 import { _transformEnclosingPoleRing } from "./transform";
 import { Points } from "./types";
 import { within } from "./utils";
 
+const _getNadir = (
+  positionAndVelocity: PositionAndVelocity,
+  gmst: number
+): Position => {
+  if (typeof positionAndVelocity.position === "boolean") {
+    throw TypeError("positionAndVelocity has not a number.");
+  }
+  const position = eciToGeodetic(positionAndVelocity.position, gmst);
 
-const _getNadir = (positionAndVelocity: PositionAndVelocity, gmst: number): Position => {
-    if (typeof positionAndVelocity.position === "boolean") {
-        throw TypeError("positionAndVelocity has not a number.");
-    }
-    const position = eciToGeodetic(
-        positionAndVelocity.position,
-        gmst
-    );
+  return [degreesLong(position.longitude), degreesLat(position.latitude)];
+};
 
-    return [
-        degreesLong(position.longitude),
-        degreesLat(position.latitude),
-    ];
-}
+export const nadir = (
+  tleLine1: string,
+  tleLine2: string,
+  date: Date
+): Position => {
+  const satrec = twoline2satrec(tleLine1, tleLine2);
+  const positionAndVelocity = propagate(satrec, date);
+  const gmst = gstime(date);
 
-export const nadir = (tleLine1: string, tleLine2: string, date: Date): Position => {
-    const satrec = twoline2satrec(tleLine1, tleLine2);
-    const positionAndVelocity = propagate(satrec, date);
-    const gmst = gstime(date);
-
-    return _getNadir(positionAndVelocity, gmst);
-}
+  return _getNadir(positionAndVelocity, gmst);
+};
 
 export interface SubSatelliteTrackOptions {
-    split?: number;
+  split?: number;
 }
 
 export const subSatelliteTrack = (
-    tleLine1: string,
-    tleLine2: string,
-    start: Date,
-    end: Date,
-    userOptions?: SubSatelliteTrackOptions): Points[] => {
-    const options = Object.assign(
-        {
-            split: 360,
-        },
-        userOptions
-    );
+  tleLine1: string,
+  tleLine2: string,
+  start: Date,
+  end: Date,
+  userOptions?: SubSatelliteTrackOptions
+): Points[] => {
+  const options = Object.assign(
+    {
+      split: 360,
+    },
+    userOptions
+  );
 
-    const satrec = twoline2satrec(tleLine1, tleLine2);
+  const satrec = twoline2satrec(tleLine1, tleLine2);
 
-    const meanMotion = satrec.no; // [rad/min]
-    const orbitPeriod = (2 * Math.PI) / (meanMotion / 60); // [sec]
-    const dt = orbitPeriod / options.split;
+  const meanMotion = satrec.no; // [rad/min]
+  const orbitPeriod = (2 * Math.PI) / (meanMotion / 60); // [sec]
+  const dt = orbitPeriod / options.split;
 
-    const tracks: Points[] = [[]];
-    let linestringIndex = 0;
-    const d = new Date(start.getTime());
+  const tracks: Points[] = [[]];
+  let linestringIndex = 0;
+  const d = new Date(start.getTime());
 
-    while (d < end) {
-        const positionAndVelocity = propagate(satrec, d);
-        if (typeof positionAndVelocity.position === "boolean") {
-            throw TypeError("positionAndVelocity has not a number.");
-        }
-
-        const gmst = gstime(d);
-        const current = _getNadir(positionAndVelocity, gmst);
-        if (tracks[linestringIndex].length > 0) {
-            const before =
-                tracks[linestringIndex][tracks[linestringIndex].length - 1];
-            if (Math.abs(current[0] - before[0]) > 180) {
-                if (current[0] < 0 && before[0] > 0) {
-                    const lat =
-                        ((current[1] - before[1]) / (360 + current[0] - before[0])) *
-                        (180 - before[0]) +
-                        before[1];
-                    tracks[linestringIndex].push([180, lat]);
-                    tracks[++linestringIndex] = [[-180, lat]];
-                }
-                if (current[0] > 0 && before[0] < 0) {
-                    const lat =
-                        ((current[1] - before[1]) / (-360 + current[0] - before[0])) *
-                        (-180 - before[0]) +
-                        before[1];
-                    tracks[linestringIndex].push([-180, lat]);
-                    tracks[++linestringIndex] = [[180, lat]];
-                }
-            }
-        }
-        tracks[linestringIndex].push(current);
-        d.setSeconds(d.getSeconds() + dt);
+  while (d < end) {
+    const positionAndVelocity = propagate(satrec, d);
+    if (typeof positionAndVelocity.position === "boolean") {
+      throw TypeError("positionAndVelocity has not a number.");
     }
-    return tracks;
-}
+
+    const gmst = gstime(d);
+    const current = _getNadir(positionAndVelocity, gmst);
+    if (tracks[linestringIndex].length > 0) {
+      const before =
+        tracks[linestringIndex][tracks[linestringIndex].length - 1];
+      if (Math.abs(current[0] - before[0]) > 180) {
+        if (current[0] < 0 && before[0] > 0) {
+          const lat =
+            ((current[1] - before[1]) / (360 + current[0] - before[0])) *
+              (180 - before[0]) +
+            before[1];
+          tracks[linestringIndex].push([180, lat]);
+          tracks[++linestringIndex] = [[-180, lat]];
+        }
+        if (current[0] > 0 && before[0] < 0) {
+          const lat =
+            ((current[1] - before[1]) / (-360 + current[0] - before[0])) *
+              (-180 - before[0]) +
+            before[1];
+          tracks[linestringIndex].push([-180, lat]);
+          tracks[++linestringIndex] = [[180, lat]];
+        }
+      }
+    }
+    tracks[linestringIndex].push(current);
+    d.setSeconds(d.getSeconds() + dt);
+  }
+  return tracks;
+};
 
 const getGroundObservingPosition = (
-    satellitePosition: EciVec3<number>,
-    observeDirection: EciVec3<number>,
-    a: number,
-    b: number,
-    ex: EciVec3<number>,
-    ey: EciVec3<number>,
-    ez: EciVec3<number>
+  satellitePosition: EciVec3<number>,
+  observeDirection: EciVec3<number>,
+  a: number,
+  b: number,
+  ex: EciVec3<number>,
+  ey: EciVec3<number>,
+  ez: EciVec3<number>
 ): EciVec3<number> => {
-    const c = a;
-    const d = {
-        x: dot({ x: ex.x, y: ey.x, z: ez.x }, observeDirection),
-        y: dot(
-            { x: ex.y, y: ey.y, z: ez.y }, observeDirection),
-        z: dot(
-            { x: ex.z, y: ey.z, z: ez.z }, observeDirection),
-    };
-    const A = d.x ** 2 / a ** 2 + d.y ** 2 / b ** 2 + d.z ** 2 / c ** 2;
-    const B =
-        (2 * d.x * satellitePosition.x) / a ** 2 +
-        (2 * d.y * satellitePosition.y) / b ** 2 +
-        (2 * d.z * satellitePosition.z) / c ** 2;
-    const C =
-        satellitePosition.x ** 2 / a ** 2 + satellitePosition.y ** 2 / b ** 2 + satellitePosition.z ** 2 / c ** 2 - 1;
+  const c = a;
+  const d = {
+    x: dot({ x: ex.x, y: ey.x, z: ez.x }, observeDirection),
+    y: dot({ x: ex.y, y: ey.y, z: ez.y }, observeDirection),
+    z: dot({ x: ex.z, y: ey.z, z: ez.z }, observeDirection),
+  };
+  const A = d.x ** 2 / a ** 2 + d.y ** 2 / b ** 2 + d.z ** 2 / c ** 2;
+  const B =
+    (2 * d.x * satellitePosition.x) / a ** 2 +
+    (2 * d.y * satellitePosition.y) / b ** 2 +
+    (2 * d.z * satellitePosition.z) / c ** 2;
+  const C =
+    satellitePosition.x ** 2 / a ** 2 +
+    satellitePosition.y ** 2 / b ** 2 +
+    satellitePosition.z ** 2 / c ** 2 -
+    1;
 
-    const D = B ** 2 - 4 * A * C;
-    const t1 = (-B + Math.sqrt(D)) / (2 * A);
-    const t2 = (-B - Math.sqrt(D)) / (2 * A);
+  const D = B ** 2 - 4 * A * C;
+  const t1 = (-B + Math.sqrt(D)) / (2 * A);
+  const t2 = (-B - Math.sqrt(D)) / (2 * A);
 
-    if (isNaN(t1) || isNaN(t2)) throw new LookingAwayError();
+  if (isNaN(t1) || isNaN(t2)) throw new LookingAwayError();
 
-    const P1 = add(
-        satellitePosition,
-        multiple(d, t1)
-    );
-    const P2 = add(
-        satellitePosition,
-        multiple(d, t2)
-    );
-    return t1 > t2 ? P2 : P1;
+  const P1 = add(satellitePosition, multiple(d, t1));
+  const P2 = add(satellitePosition, multiple(d, t2));
+  return t1 > t2 ? P2 : P1;
 };
 
 const _warp = (lonlat: number[], reference?: number[]): Position => {
-    let lon = lonlat[0];
-    if (reference && Math.abs(reference[0] - lon) >= 180) {
-        if (reference[0] >= 0) lon += 360;
-        else lon -= 360;
-    }
+  let lon = lonlat[0];
+  if (reference && Math.abs(reference[0] - lon) >= 180) {
+    if (reference[0] >= 0) lon += 360;
+    else lon -= 360;
+  }
 
-    return [lon, lonlat[1]];
-}
+  return [lon, lonlat[1]];
+};
 
-export const toLonLat = (point: GeodeticLocation, reference?: number[]): Position => {
-    return _warp([degreesLong(point.longitude), degreesLat(point.latitude)], reference);
-}
+export const toLonLat = (
+  point: GeodeticLocation,
+  reference?: number[]
+): Position => {
+  return _warp(
+    [degreesLong(point.longitude), degreesLat(point.latitude)],
+    reference
+  );
+};
 
 export interface FootprintOptions {
-    insert?: number;
-    fov?: number | [number, number]; // [deg] [cross track, along track]
-    offnadir?: number; // [deg] "+" means left side, "-" means right side.
-    a?: number; // [km]
-    f?: number;
+  insert?: number;
+  fov?: number | [number, number]; // [deg] [cross track, along track]
+  offnadir?: number; // [deg] "+" means left side, "-" means right side.
+  a?: number; // [km]
+  f?: number;
 }
 
 const _getFootprint = (
-    positionAndVelocity: PositionAndVelocity,
-    gmst: number,
-    userOptions?: FootprintOptions): Points => {
-    const options = Object.assign(
-        {
-            insert: 5,
-            fov: 30,
-            a: 6378.137, // WGS84
-            f: 1 / 298.257223563,// WGS84
-            offnadir: 0
-        },
-        userOptions
+  positionAndVelocity: PositionAndVelocity,
+  gmst: number,
+  userOptions?: FootprintOptions
+): Points => {
+  const options = Object.assign(
+    {
+      insert: 5,
+      fov: 30,
+      a: 6378.137, // WGS84
+      f: 1 / 298.257223563, // WGS84
+      offnadir: 0,
+    },
+    userOptions
+  );
+  if (
+    typeof positionAndVelocity.position === "boolean" ||
+    typeof positionAndVelocity.velocity === "boolean"
+  ) {
+    throw TypeError("positionAndVelocity has not a number.");
+  }
+
+  const fov = Array.isArray(options.fov)
+    ? options.fov
+    : [options.fov, options.fov];
+  const [f1, f2] = [
+    ((fov[0] / 2) * Math.PI) / 180,
+    ((fov[1] / 2) * Math.PI) / 180,
+  ];
+  const f3 = Math.atan(Math.sqrt(Math.tan(f1) ** 2 + Math.tan(f2) ** 2));
+  const f4 = Math.atan(Math.tan(f1) / Math.tan(f2));
+
+  const rf = {
+    x: Math.sin(f3) * Math.cos(f4),
+    y: Math.sin(f3) * Math.sin(f4),
+    z: Math.cos(f3),
+  };
+  const lf = {
+    x: Math.sin(f3) * Math.cos(f4),
+    y: -Math.sin(f3) * Math.sin(f4),
+    z: Math.cos(f3),
+  };
+  const lb = {
+    x: -Math.sin(f3) * Math.cos(f4),
+    y: -Math.sin(f3) * Math.sin(f4),
+    z: Math.cos(f3),
+  };
+  const rb = {
+    x: -Math.sin(f3) * Math.cos(f4),
+    y: Math.sin(f3) * Math.sin(f4),
+    z: Math.cos(f3),
+  };
+
+  const length = options.insert + 1;
+
+  const ex = unit(positionAndVelocity.velocity);
+  const ez = unit(
+    rodoriguesRotate(
+      ex,
+      options.offnadir,
+      multiple(positionAndVelocity.position, -1)
+    )
+  );
+  const ey = unit(cross(ez, ex));
+
+  const a = options.a;
+  const b = a * (1 - options.f);
+
+  const nadir = _getNadir(positionAndVelocity, gmst);
+  const center = toLonLat(
+    eciToGeodetic(
+      getGroundObservingPosition(
+        positionAndVelocity.position,
+        { x: 0, y: 0, z: 1 },
+        a,
+        b,
+        ex,
+        ey,
+        ez
+      ),
+      gmst
+    ),
+    nadir
+  );
+
+  const positions = [
+    getGroundObservingPosition(
+      positionAndVelocity.position,
+      rf,
+      a,
+      b,
+      ex,
+      ey,
+      ez
+    ),
+    getGroundObservingPosition(
+      positionAndVelocity.position,
+      lf,
+      a,
+      b,
+      ex,
+      ey,
+      ez
+    ),
+    getGroundObservingPosition(
+      positionAndVelocity.position,
+      lb,
+      a,
+      b,
+      ex,
+      ey,
+      ez
+    ),
+    getGroundObservingPosition(
+      positionAndVelocity.position,
+      rb,
+      a,
+      b,
+      ex,
+      ey,
+      ez
+    ),
+  ];
+
+  if (
+    within(
+      [0, 0],
+      [
+        ...positions.map((position) => [position.x, position.y]),
+        [positions[0].x, positions[0].y],
+      ],
+      { includeBorder: true }
+    )
+  ) {
+    return _transformEnclosingPoleRing(
+      [...positions, positions[0]].map((p) =>
+        toLonLat(eciToGeodetic(p, gmst), center)
+      ),
+      "EPSG:4326",
+      options.insert,
+      positionAndVelocity.position.z >= 0
     );
-    if (typeof positionAndVelocity.position === "boolean" || typeof positionAndVelocity.velocity === "boolean") {
-        throw TypeError("positionAndVelocity has not a number.");
-    }
+  }
 
-    const fov = Array.isArray(options.fov) ? options.fov : [options.fov, options.fov];
-    const [f1, f2] = [(fov[0] / 2 * Math.PI) / 180, (fov[1] / 2 * Math.PI) / 180];
-    const f3 = Math.atan(Math.sqrt(Math.tan(f1) ** 2 + Math.tan(f2) ** 2));
-    const f4 = Math.atan(Math.tan(f1) / Math.tan(f2));
+  // right front to left front
+  {
+    const direction = { ...rf };
+    for (let i = 1; i < length; i++) {
+      direction.y += -(2 * Math.sin(f3) * Math.sin(f4)) / length;
 
-    const rf = {
-        x: Math.sin(f3) * Math.cos(f4),
-        y: Math.sin(f3) * Math.sin(f4),
-        z: Math.cos(f3),
-    };
-    const lf = {
-        x: Math.sin(f3) * Math.cos(f4),
-        y: -Math.sin(f3) * Math.sin(f4),
-        z: Math.cos(f3),
-    };
-    const lb = {
-        x: - Math.sin(f3) * Math.cos(f4),
-        y: -Math.sin(f3) * Math.sin(f4),
-        z: Math.cos(f3),
-    };
-    const rb = {
-        x: -Math.sin(f3) * Math.cos(f4),
-        y: Math.sin(f3) * Math.sin(f4),
-        z: Math.cos(f3),
-    };
-
-    const length = options.insert + 1;
-
-    const ex = unit(positionAndVelocity.velocity);
-    const ez = unit(rodoriguesRotate(ex, options.offnadir, multiple(positionAndVelocity.position, -1)));
-    const ey = unit(
-        cross(
-            ez,
-            ex,
+      positions.splice(
+        i,
+        0,
+        getGroundObservingPosition(
+          positionAndVelocity.position,
+          direction,
+          a,
+          b,
+          ex,
+          ey,
+          ez
         )
-    );
-
-    const a = options.a;
-    const b = a * (1 - options.f);
-
-    const nadir = _getNadir(positionAndVelocity, gmst);
-    const center = toLonLat(eciToGeodetic(getGroundObservingPosition(positionAndVelocity.position, { x: 0, y: 0, z: 1 }, a, b, ex, ey, ez), gmst), nadir)
-
-    const positions = [
-        getGroundObservingPosition(positionAndVelocity.position, rf, a, b, ex, ey, ez),
-        getGroundObservingPosition(positionAndVelocity.position, lf, a, b, ex, ey, ez),
-        getGroundObservingPosition(positionAndVelocity.position, lb, a, b, ex, ey, ez),
-        getGroundObservingPosition(positionAndVelocity.position, rb, a, b, ex, ey, ez),
-    ];
-
-    if (within([0, 0], [...positions.map((position) => [
-        position.x, position.y
-    ]), [positions[0].x, positions[0].y]], { includeBorder: true })) {
-        return _transformEnclosingPoleRing(
-            [...positions, positions[0]].map((p) => toLonLat(eciToGeodetic(
-                p,
-                gmst
-            ), center)),
-            "EPSG:4326",
-            options.insert,
-            positionAndVelocity.position.z >= 0
-        );
+      );
     }
+  }
+  // left front to left back
+  {
+    const direction = { ...lf };
+    for (let i = 1; i < length; i++) {
+      direction.x += -(2 * Math.sin(f3) * Math.cos(f4)) / length;
 
-    // right front to left front
-    {
-        const direction = { ...rf };
-        for (let i = 1; i < length; i++) {
-            direction.y += -(2 * Math.sin(f3) * Math.sin(f4)) / length;
-
-            positions.splice(i, 0, getGroundObservingPosition(positionAndVelocity.position, direction, a, b, ex, ey, ez));
-        }
+      positions.splice(
+        i + length,
+        0,
+        getGroundObservingPosition(
+          positionAndVelocity.position,
+          direction,
+          a,
+          b,
+          ex,
+          ey,
+          ez
+        )
+      );
     }
-    // left front to left back
-    {
-        const direction = { ...lf };
-        for (let i = 1; i < length; i++) {
-            direction.x += -(2 * Math.sin(f3) * Math.cos(f4)) / length;
+  }
+  // left back to right back
+  {
+    const direction = { ...lb };
+    for (let i = 1; i < length; i++) {
+      direction.y += (2 * Math.sin(f3) * Math.sin(f4)) / length;
 
-            positions.splice(i + length, 0, getGroundObservingPosition(positionAndVelocity.position, direction, a, b, ex, ey, ez));
-        }
+      positions.splice(
+        i + length * 2,
+        0,
+        getGroundObservingPosition(
+          positionAndVelocity.position,
+          direction,
+          a,
+          b,
+          ex,
+          ey,
+          ez
+        )
+      );
     }
-    // left back to right back
-    {
-        const direction = { ...lb };
-        for (let i = 1; i < length; i++) {
-            direction.y += (2 * Math.sin(f3) * Math.sin(f4)) / length;
+  }
+  // right back to right front
+  {
+    const direction = { ...rb };
+    for (let i = 1; i < length; i++) {
+      direction.x += (2 * Math.sin(f3) * Math.cos(f4)) / length;
 
-            positions.splice(i + length * 2, 0, getGroundObservingPosition(positionAndVelocity.position, direction, a, b, ex, ey, ez));
-        }
+      positions.splice(
+        i + length * 3,
+        0,
+        getGroundObservingPosition(
+          positionAndVelocity.position,
+          direction,
+          a,
+          b,
+          ex,
+          ey,
+          ez
+        )
+      );
     }
-    // right back to right front
-    {
-        const direction = { ...rb };
-        for (let i = 1; i < length; i++) {
-            direction.x += (2 * Math.sin(f3) * Math.cos(f4)) / length;
+  }
 
-            positions.splice(i + length * 3, 0, getGroundObservingPosition(positionAndVelocity.position, direction, a, b, ex, ey, ez));
-        }
-    }
+  const lonlats = positions.map((position) => {
+    return toLonLat(eciToGeodetic(position, gmst), center);
+  });
+  return [...lonlats, lonlats[0]];
+};
 
-    const lonlats = positions.map((position) => {
-        return toLonLat(eciToGeodetic(position, gmst), center);
-    });
-    return [...lonlats, lonlats[0]];
-}
+export const footprint = (
+  tleLine1: string,
+  tleLine2: string,
+  date: Date,
+  userOptions?: FootprintOptions
+): Points => {
+  const satrec = twoline2satrec(tleLine1, tleLine2);
+  const positionAndVelocity = propagate(satrec, date);
+  const gmst = gstime(date);
 
-export const footprint = (tleLine1: string, tleLine2: string, date: Date, userOptions?: FootprintOptions): Points => {
-    const satrec = twoline2satrec(tleLine1, tleLine2);
-    const positionAndVelocity = propagate(satrec, date);
-    const gmst = gstime(date);
-
-    return _getFootprint(positionAndVelocity, gmst, userOptions);
+  return _getFootprint(positionAndVelocity, gmst, userOptions);
 };
 
 export interface AccessAreaOptions {
-    split?: number;
-    roll?: number | [number, number]; // [deg] If array, left side is larger value, left side is smaller value.
-    a?: number; // [km]
-    f?: number;
-    insert?: number;
+  split?: number;
+  roll?: number | [number, number]; // [deg] If array, left side is larger value, left side is smaller value.
+  a?: number; // [km]
+  f?: number;
+  insert?: number;
 }
 
 const _getEdge = (
-    satellitePosition: EciVec3<number>,
-    gmst: number,
-    a: number,
-    b: number,
-    ex: EciVec3<number>,
-    ey: EciVec3<number>,
-    ez: EciVec3<number>,
-    rolls: number[],
-    insert: number,
-    reference: number[],
-    start: boolean
+  satellitePosition: EciVec3<number>,
+  gmst: number,
+  a: number,
+  b: number,
+  ex: EciVec3<number>,
+  ey: EciVec3<number>,
+  ez: EciVec3<number>,
+  rolls: number[],
+  insert: number,
+  reference: number[],
+  start: boolean
 ): Points => {
-    const edgePositions: Points = [];
-    const theta0 = start ? rolls[0] : rolls[1];
-    const length = insert + 1;
-    const delta = (start ? 1 : -1) * (rolls[1] - rolls[0]) / length;
+  const edgePositions: Points = [];
+  const theta0 = start ? rolls[0] : rolls[1];
+  const length = insert + 1;
+  const delta = ((start ? 1 : -1) * (rolls[1] - rolls[0])) / length;
 
-    for (let i = 1; i < length; i++) {
-        const theta = theta0 + i * delta;
-        edgePositions.push(
-            toLonLat(
-                eciToGeodetic(
-                    getGroundObservingPosition(
-                        satellitePosition,
-                        {
-                            x: 0,
-                            y: -Math.sin(theta),
-                            z: Math.cos(theta),
-                        },
-                        a,
-                        b,
-                        ex,
-                        ey,
-                        ez
-                    ),
-                    gmst
-                ),
-                reference
-            )
-        );
-    }
+  for (let i = 1; i < length; i++) {
+    const theta = theta0 + i * delta;
+    edgePositions.push(
+      toLonLat(
+        eciToGeodetic(
+          getGroundObservingPosition(
+            satellitePosition,
+            {
+              x: 0,
+              y: -Math.sin(theta),
+              z: Math.cos(theta),
+            },
+            a,
+            b,
+            ex,
+            ey,
+            ez
+          ),
+          gmst
+        ),
+        reference
+      )
+    );
+  }
 
-    return edgePositions;
+  return edgePositions;
 };
 
 export const accessArea = (
-    tleLine1: string,
-    tleLine2: string,
-    start: Date,
-    end: Date,
-    userOptions?: AccessAreaOptions
+  tleLine1: string,
+  tleLine2: string,
+  start: Date,
+  end: Date,
+  userOptions?: AccessAreaOptions
 ): Points[] => {
-    const options = Object.assign(
-        {
-            split: 360,
-            roll: 10,
-            radius: 6378.137, // WGS84
-            f: 1 / 298.257223563, // WGS84
-            insert: 5,
-        },
-        userOptions
+  const options = Object.assign(
+    {
+      split: 360,
+      roll: 10,
+      radius: 6378.137, // WGS84
+      f: 1 / 298.257223563, // WGS84
+      insert: 5,
+    },
+    userOptions
+  );
+
+  const satrec = twoline2satrec(tleLine1, tleLine2);
+
+  const meanMotion = satrec.no; // [rad/min]
+  const orbitPeriod = (2 * Math.PI) / (meanMotion / 60); // [sec]
+  const dt = orbitPeriod / options.split;
+
+  let leftVectors: EciVec3<number>[] = [];
+  let rightVectors: EciVec3<number>[] = [];
+  let startEdgePositions: Points = [];
+  let leftPositions: Points = [];
+  let rightPositions: Points = [];
+  let onboardIndex = 0;
+  let across = 0;
+
+  let reference: Position | null = null;
+  let leftTrack: Points = [];
+  let rightTrack: Points = [];
+
+  const a = options.radius;
+  const b = a * (1 - options.f);
+
+  const rolls: number[] = [];
+  if (Array.isArray(options.roll)) {
+    rolls.push((Math.max(...options.roll) * Math.PI) / 180);
+    rolls.push((Math.min(...options.roll) * Math.PI) / 180);
+  } else {
+    rolls.push((Math.abs(options.roll) * Math.PI) / 180);
+    rolls.push((-Math.abs(options.roll) * Math.PI) / 180);
+  }
+  const l = {
+    x: 0,
+    y: -Math.sin(rolls[0]),
+    z: Math.cos(rolls[0]),
+  };
+  const r = {
+    x: 0,
+    y: -Math.sin(rolls[1]),
+    z: Math.cos(rolls[1]),
+  };
+
+  const linearRings: Points[] = [];
+  const d = new Date(start.getTime());
+
+  while (d < end) {
+    const positionAndVelocity = propagate(satrec, d);
+    if (
+      typeof positionAndVelocity.position === "boolean" ||
+      typeof positionAndVelocity.velocity === "boolean"
+    ) {
+      throw TypeError("positionAndVelocity has not a number.");
+    }
+
+    const gmst = gstime(d);
+
+    const ex = unit(positionAndVelocity.velocity);
+    const ez = unit(multiple(positionAndVelocity.position, -1));
+    const ey = unit(cross(ez, ex));
+
+    const leftVector = getGroundObservingPosition(
+      positionAndVelocity.position,
+      l,
+      a,
+      b,
+      ex,
+      ey,
+      ez
     );
+    const leftLocation = eciToGeodetic(leftVector, gmst);
 
-    const satrec = twoline2satrec(tleLine1, tleLine2);
+    const rightVector = getGroundObservingPosition(
+      positionAndVelocity.position,
+      r,
+      a,
+      b,
+      ex,
+      ey,
+      ez
+    );
+    const rightLocation = eciToGeodetic(rightVector, gmst);
 
-    const meanMotion = satrec.no; // [rad/min]
-    const orbitPeriod = (2 * Math.PI) / (meanMotion / 60); // [sec]
-    const dt = orbitPeriod / options.split;
+    if (!reference) {
+      reference = _getNadir(positionAndVelocity, gmst);
 
-    let leftVectors: EciVec3<number>[] = [];
-    let rightVectors: EciVec3<number>[] = [];
-    let startEdgePositions: Points = [];
-    let leftPositions: Points = [];
-    let rightPositions: Points = [];
-    let onboardIndex = 0;
-    let across = 0;
-
-    let reference: Position | null = null;
-    let leftTrack: Points = [];
-    let rightTrack: Points = [];
-
-    const a = options.radius;
-    const b = a * (1 - options.f);
-
-    const rolls: number[] = [];
-    if (Array.isArray(options.roll)) {
-        rolls.push(Math.max(...options.roll) * Math.PI / 180);
-        rolls.push(Math.min(...options.roll) * Math.PI / 180);
-    } else {
-        rolls.push(Math.abs(options.roll) * Math.PI / 180);
-        rolls.push(-Math.abs(options.roll) * Math.PI / 180);
+      startEdgePositions = _getEdge(
+        positionAndVelocity.position,
+        gmst,
+        a,
+        b,
+        ex,
+        ey,
+        ez,
+        rolls,
+        options.insert,
+        reference,
+        true
+      );
     }
-    const l = {
-        x: 0,
-        y: -Math.sin(rolls[0]),
-        z: Math.cos(rolls[0]),
-    };
-    const r = {
-        x: 0,
-        y: -Math.sin(rolls[1]),
-        z: Math.cos(rolls[1]),
-    };
+    const left = toLonLat(leftLocation, reference);
+    const right = toLonLat(rightLocation, reference);
 
-    const linearRings: Points[] = [];
-    const d = new Date(start.getTime());
+    if (across === 0) {
+      if ((180 - Math.abs(left[0])) * (180 - Math.abs(right[0])) < 0)
+        across = 1;
+    } else if (across === 1) {
+      if ((180 - Math.abs(left[0])) * (180 - Math.abs(right[0])) > 0)
+        across = -1;
+    }
 
-    while (d < end) {
-        const positionAndVelocity = propagate(satrec, d);
+    leftVectors.push(leftVector);
+    rightVectors.push(rightVector);
+    leftPositions.push(left);
+    rightPositions.push(right);
+    onboardIndex++;
+
+    if (onboardIndex > 1) {
+      const vectorRing = [
+        ...rightVectors,
+        ...[...leftVectors].reverse(),
+        rightVectors[0],
+      ];
+      if (
+        within(
+          [0, 0],
+          vectorRing.map((v) => [v.x, v.y])
+        )
+      ) {
+        leftTrack = leftTrack.concat(
+          leftPositions.slice(0, leftPositions.length - 1)
+        );
+
+        rightTrack = rightTrack.concat(
+          rightPositions.slice(0, rightPositions.length - 1)
+        );
+        const middleLeftPosition = [...leftPositions[leftPositions.length - 1]];
+        const middleRightPosition = [
+          ...rightPositions[rightPositions.length - 1],
+        ];
+
         if (
-            typeof positionAndVelocity.position === "boolean" ||
-            typeof positionAndVelocity.velocity === "boolean"
+          Math.abs(middleLeftPosition[0] - leftTrack[leftTrack.length - 1][0]) >
+          180
         ) {
-            throw TypeError("positionAndVelocity has not a number.");
+          middleLeftPosition[0] +=
+            leftTrack[leftTrack.length - 1][0] > 0 ? 360 : -360;
         }
-
-        const gmst = gstime(d);
-
-        const ex = unit(positionAndVelocity.velocity);
-        const ez = unit(multiple(positionAndVelocity.position, -1));
-        const ey = unit(
-            cross(
-                ez,
-                ex,
-            )
-        );
-
-        const leftVector = getGroundObservingPosition(
-            positionAndVelocity.position,
-            l,
-            a,
-            b,
-            ex,
-            ey,
-            ez
-        );
-        const leftLocation = eciToGeodetic(leftVector, gmst);
-
-        const rightVector = getGroundObservingPosition(
-            positionAndVelocity.position,
-            r,
-            a,
-            b,
-            ex,
-            ey,
-            ez
-        );
-        const rightLocation = eciToGeodetic(rightVector, gmst);
-
-        if (!reference) {
-            reference = _getNadir(positionAndVelocity, gmst);
-
-            startEdgePositions = _getEdge(
-                positionAndVelocity.position,
-                gmst,
-                a,
-                b,
-                ex,
-                ey,
-                ez,
-                rolls,
-                options.insert,
-                reference,
-                true
-            );
+        if (
+          Math.abs(
+            middleRightPosition[0] - rightTrack[rightTrack.length - 1][0]
+          ) > 180
+        ) {
+          middleRightPosition[0] +=
+            rightTrack[rightTrack.length - 1][0] > 0 ? 360 : -360;
         }
+        leftTrack.push(middleLeftPosition);
+        rightTrack.push(middleRightPosition);
+
+        const polarLat = positionAndVelocity.position.z >= 0 ? 90 : -90;
+        leftTrack.push([middleLeftPosition[0], polarLat]);
+        rightTrack.push([middleRightPosition[0], polarLat]);
+
+        linearRings.push([
+          leftTrack[0],
+          ...startEdgePositions,
+          ...rightTrack,
+          ...[...leftTrack].reverse(),
+        ]);
+
+        leftVectors = [leftVector];
+        rightVectors = [rightVector];
+        reference = _getNadir(positionAndVelocity, gmst);
         const left = toLonLat(leftLocation, reference);
+        leftPositions = [left];
         const right = toLonLat(rightLocation, reference);
+        rightPositions = [right];
+        onboardIndex = 1;
+        across =
+          (180 - Math.abs(left[0])) * (180 - Math.abs(right[0])) < 0 ? 1 : 0;
 
+        leftTrack = [[left[0], polarLat]];
+        rightTrack = [[right[0], polarLat]];
+
+        startEdgePositions = [];
+      } else if (across < 1) {
+        const current = _getNadir(positionAndVelocity, gmst);
         if (across === 0) {
-            if ((180 - Math.abs(left[0])) * (180 - Math.abs(right[0])) < 0)
-                across = 1;
-        } else if (across === 1) {
-            if ((180 - Math.abs(left[0])) * (180 - Math.abs(right[0])) > 0)
-                across = -1;
+          if (Math.abs(current[0] - reference[0]) >= 180) {
+            across = -1;
+          } else {
+            leftTrack.push(leftPositions[0]);
+            rightTrack.push(rightPositions[0]);
+          }
+        }
+        if (across < 0) {
+          leftTrack = leftTrack.concat(leftPositions);
+          rightTrack = rightTrack.concat(rightPositions);
+          let linearRing = [leftTrack[0], ...startEdgePositions, ...rightTrack];
+
+          const endeEdgePositions = (startEdgePositions = _getEdge(
+            positionAndVelocity.position,
+            gmst,
+            a,
+            b,
+            ex,
+            ey,
+            ez,
+            rolls,
+            options.insert,
+            reference,
+            false
+          ));
+
+          linearRing = linearRing.concat([
+            ...endeEdgePositions,
+            ...[...leftTrack].reverse(),
+          ]);
+          linearRings.push(linearRing);
+
+          rightTrack = [];
+          leftTrack = [];
         }
 
-        leftVectors.push(leftVector);
-        rightVectors.push(rightVector);
-        leftPositions.push(left);
-        rightPositions.push(right);
-        onboardIndex++;
+        leftVectors = [leftVector];
+        rightVectors = [rightVector];
+        reference = current;
+        leftPositions = [toLonLat(leftLocation, reference)];
+        rightPositions = [toLonLat(rightLocation, reference)];
+        onboardIndex = 1;
 
-        if (onboardIndex > 1) {
-            const vectorRing = [
-                ...rightVectors,
-                ...[...leftVectors].reverse(),
-                rightVectors[0],
-            ];
-            if (
-                within(
-                    [0, 0],
-                    vectorRing.map((v) => [v.x, v.y])
-                )
-            ) {
-                leftTrack = leftTrack.concat(
-                    leftPositions.slice(0, leftPositions.length - 1)
-                );
-
-                rightTrack = rightTrack.concat(
-                    rightPositions.slice(0, rightPositions.length - 1)
-                );
-                const middleLeftPosition = [...leftPositions[leftPositions.length - 1]];
-                const middleRightPosition = [
-                    ...rightPositions[rightPositions.length - 1],
-                ];
-
-                if (
-                    Math.abs(middleLeftPosition[0] - leftTrack[leftTrack.length - 1][0]) >
-                    180
-                ) {
-                    middleLeftPosition[0] +=
-                        leftTrack[leftTrack.length - 1][0] > 0 ? 360 : -360;
-                }
-                if (
-                    Math.abs(
-                        middleRightPosition[0] - rightTrack[rightTrack.length - 1][0]
-                    ) > 180
-                ) {
-                    middleRightPosition[0] +=
-                        rightTrack[rightTrack.length - 1][0] > 0 ? 360 : -360;
-                }
-                leftTrack.push(middleLeftPosition);
-                rightTrack.push(middleRightPosition);
-
-                const polarLat = positionAndVelocity.position.z >= 0 ? 90 : -90;
-                leftTrack.push([middleLeftPosition[0], polarLat]);
-                rightTrack.push([middleRightPosition[0], polarLat]);
-
-                linearRings.push([
-                    leftTrack[0],
-                    ...startEdgePositions,
-                    ...rightTrack,
-                    ...[...leftTrack].reverse(),
-                ]);
-
-                leftVectors = [leftVector];
-                rightVectors = [rightVector];
-                reference = _getNadir(positionAndVelocity, gmst);
-                const left = toLonLat(leftLocation, reference);
-                leftPositions = [left];
-                const right = toLonLat(rightLocation, reference);
-                rightPositions = [right];
-                onboardIndex = 1;
-                across =
-                    (180 - Math.abs(left[0])) * (180 - Math.abs(right[0])) < 0 ? 1 : 0;
-
-                leftTrack = [[left[0], polarLat]];
-                rightTrack = [[right[0], polarLat]];
-
-                startEdgePositions = [];
-            } else if (across < 1) {
-                const current = _getNadir(positionAndVelocity, gmst);
-                if (across === 0) {
-                    if (Math.abs(current[0] - reference[0]) >= 180) {
-                        across = -1;
-                    } else {
-                        leftTrack.push(leftPositions[0]);
-                        rightTrack.push(rightPositions[0]);
-                    }
-                }
-                if (across < 0) {
-                    leftTrack = leftTrack.concat(leftPositions);
-                    rightTrack = rightTrack.concat(rightPositions);
-                    let linearRing = [leftTrack[0], ...startEdgePositions, ...rightTrack];
-
-                    const endeEdgePositions = (startEdgePositions = _getEdge(
-                        positionAndVelocity.position,
-                        gmst,
-                        a,
-                        b,
-                        ex,
-                        ey,
-                        ez,
-                        rolls,
-                        options.insert,
-                        reference,
-                        false
-                    ));
-
-                    linearRing = linearRing.concat([
-                        ...endeEdgePositions,
-                        ...[...leftTrack].reverse(),
-                    ]);
-                    linearRings.push(linearRing);
-
-                    rightTrack = [];
-                    leftTrack = [];
-                }
-
-                leftVectors = [leftVector];
-                rightVectors = [rightVector];
-                reference = current;
-                leftPositions = [toLonLat(leftLocation, reference)];
-                rightPositions = [toLonLat(rightLocation, reference)];
-                onboardIndex = 1;
-
-                if (across < 0) {
-                    startEdgePositions = _getEdge(
-                        positionAndVelocity.position,
-                        gmst,
-                        a,
-                        b,
-                        ex,
-                        ey,
-                        ez,
-                        rolls,
-                        options.insert,
-                        reference,
-                        true
-                    );
-                }
-
-                across = 0;
-            }
+        if (across < 0) {
+          startEdgePositions = _getEdge(
+            positionAndVelocity.position,
+            gmst,
+            a,
+            b,
+            ex,
+            ey,
+            ez,
+            rolls,
+            options.insert,
+            reference,
+            true
+          );
         }
-        d.setSeconds(d.getSeconds() + dt);
 
-        if (end <= d) {
-            leftTrack = leftTrack.concat(leftPositions);
-            rightTrack = rightTrack.concat(rightPositions);
-            if (leftTrack.length > 1 && rightTrack.length > 1) {
-                let linearRing = [leftTrack[0], ...startEdgePositions, ...rightTrack];
-
-                const endEdgePositions = _getEdge(
-                    positionAndVelocity.position,
-                    gmst,
-                    a,
-                    b,
-                    ex,
-                    ey,
-                    ez,
-                    rolls,
-                    options.insert,
-                    reference,
-                    false
-                );
-                linearRing = linearRing.concat([
-                    ...endEdgePositions,
-                    ...[...leftTrack].reverse(),
-                ]);
-                linearRings.push(linearRing);
-            }
-        }
+        across = 0;
+      }
     }
+    d.setSeconds(d.getSeconds() + dt);
 
-    return linearRings;
+    if (end <= d) {
+      leftTrack = leftTrack.concat(leftPositions);
+      rightTrack = rightTrack.concat(rightPositions);
+      if (leftTrack.length > 1 && rightTrack.length > 1) {
+        let linearRing = [leftTrack[0], ...startEdgePositions, ...rightTrack];
+
+        const endEdgePositions = _getEdge(
+          positionAndVelocity.position,
+          gmst,
+          a,
+          b,
+          ex,
+          ey,
+          ez,
+          rolls,
+          options.insert,
+          reference,
+          false
+        );
+        linearRing = linearRing.concat([
+          ...endEdgePositions,
+          ...[...leftTrack].reverse(),
+        ]);
+        linearRings.push(linearRing);
+      }
+    }
+  }
+
+  return linearRings;
 };

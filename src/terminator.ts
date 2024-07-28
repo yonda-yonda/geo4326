@@ -4,40 +4,50 @@ const getJulianDate = (date: Date | number): number => {
   // https://www5d.biglobe.ne.jp/~noocyte/Programming/GregorianAndJulianCalendars.html
   const d = date instanceof Date ? date.getTime() : date;
   return d / 86400000 + 2440587.5;
-}
+};
 
 const getGreenwichMeanSiderealTime = (jd: number): number => {
   // https://aa.usno.navy.mil/faq/GAST
   return (18.697374558 + 24.06570982441908 * (jd - 2451545)) % 24;
-}
+};
 
 const getSunEclipticLongitude = (jd: number): number => {
   // https://en.wikipedia.org/wiki/Position_of_the_Sun
   const n = jd - 2451545;
   const L = (280.46 + 0.9856474 * n) % 360;
-  const g = ((357.528 + 0.9856003 * n) % 360) * Math.PI / 180;
+  const g = (((357.528 + 0.9856003 * n) % 360) * Math.PI) / 180;
 
   // radians
-  return (L + 1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g)) * Math.PI / 180;
-}
+  return ((L + 1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g)) * Math.PI) / 180;
+};
 
 const getEclipticObliquity = (jd: number): number => {
   // https://ja.wikipedia.org/wiki/%E9%BB%84%E9%81%93%E5%82%BE%E6%96%9C%E8%A7%92
   const t = (jd - 2451545) / 36525;
 
   // radians
-  return ((84381.406 - 46.836769 * t - 0.00059 * t ** 2 + 0.001813 * t ** 3) / 3600) * Math.PI / 180;
-}
+  return (
+    (((84381.406 - 46.836769 * t - 0.00059 * t ** 2 + 0.001813 * t ** 3) /
+      3600) *
+      Math.PI) /
+    180
+  );
+};
 
-const getSunEquatorialPosition = (longitude: number, obliquity: number): number[] => {
+const getSunEquatorialPosition = (
+  longitude: number,
+  obliquity: number
+): number[] => {
   // 日の出・日の入りの計算 天体の出没時刻の求め方 長沢工著 ISBN4-8052-0634-9 p74
-  const delta =
-    Math.asin(Math.sin(longitude) * Math.sin(obliquity)); // 赤緯 -90deg to 90deg
-  const alpha = Math.atan2(Math.sin(longitude) * Math.cos(obliquity) / Math.cos(delta), Math.cos(longitude) / Math.cos(delta)); // 赤経 -180deg to 180deg
+  const delta = Math.asin(Math.sin(longitude) * Math.sin(obliquity)); // 赤緯 -90deg to 90deg
+  const alpha = Math.atan2(
+    (Math.sin(longitude) * Math.cos(obliquity)) / Math.cos(delta),
+    Math.cos(longitude) / Math.cos(delta)
+  ); // 赤経 -180deg to 180deg
 
   // radians
   return [alpha, delta];
-}
+};
 
 const getTwilight = (t: string): number => {
   switch (t) {
@@ -62,21 +72,31 @@ export interface NightPolygonOptions {
   eps?: number;
 }
 
-export const night = (date: Date | string, options?: NightPolygonOptions): Feature<MultiPolygon> => {
-  const { division, elevation, eps } = Object.assign({ division: 360, elevation: 0, eps: 1e-8 }, options);
+export const night = (
+  date: Date | string,
+  options?: NightPolygonOptions
+): Feature<MultiPolygon> => {
+  const { division, elevation, eps } = Object.assign(
+    { division: 360, elevation: 0, eps: 1e-8 },
+    options
+  );
 
   const d = date instanceof Date ? date : new Date(date);
 
-  const elevationDegree = typeof elevation === "string" ? getTwilight(elevation) : elevation;
+  const elevationDegree =
+    typeof elevation === "string" ? getTwilight(elevation) : elevation;
   if (90 < elevationDegree || 0 < elevationDegree) throw new RangeError();
-  const e = elevationDegree * Math.PI / 180
+  const e = (elevationDegree * Math.PI) / 180;
 
   const jd = getJulianDate(d);
   const gmst = getGreenwichMeanSiderealTime(jd);
 
   const sunEclipticLongitude = getSunEclipticLongitude(jd); // 黄経
   const eclipticObliquity = getEclipticObliquity(jd); // 黄道傾角
-  const [alpha, delta] = getSunEquatorialPosition(sunEclipticLongitude, eclipticObliquity);
+  const [alpha, delta] = getSunEquatorialPosition(
+    sunEclipticLongitude,
+    eclipticObliquity
+  );
 
   const longlats: number[][][][] = [];
 
@@ -86,7 +106,8 @@ export const night = (date: Date | string, options?: NightPolygonOptions): Featu
 
     for (let i = 0; i <= division; i++) {
       const longitude = i === division ? 180 : -180 + diffDeg * i;
-      const hourAngle = gmst * 15 * Math.PI / 180 + longitude * Math.PI / 180 - alpha;
+      const hourAngle =
+        (gmst * 15 * Math.PI) / 180 + (longitude * Math.PI) / 180 - alpha;
 
       if (e === 0) {
         if (delta === 0) {
@@ -97,31 +118,31 @@ export const night = (date: Date | string, options?: NightPolygonOptions): Featu
           }
         } else {
           const lat = Math.atan(-Math.cos(hourAngle) / Math.tan(delta));
-          path.push([longitude, lat * 180 / Math.PI]);
+          path.push([longitude, (lat * 180) / Math.PI]);
         }
       } else {
         const lat = Math.asin(Math.sin(e) / Math.sin(delta));
-        path.push([longitude, lat * 180 / Math.PI]);
+        path.push([longitude, (lat * 180) / Math.PI]);
       }
     }
     const latitude = delta > 0 ? -90 : 90;
     path.push([180, latitude]);
     path.push([-180, latitude]);
     path.unshift([-180, latitude]);
-    if (delta)
-      path.reverse();
+    if (delta) path.reverse();
     longlats.push([path]);
-
   } else {
     let upper: number[][] = [];
     let lower: number[][] = [];
 
     for (let i = 0; i <= division; i++) {
       let longitude = i === division ? 180 : -180 + diffDeg * i;
-      let hourAngle = gmst * 15 * Math.PI / 180 + longitude * Math.PI / 180 - alpha;
+      let hourAngle =
+        (gmst * 15 * Math.PI) / 180 + (longitude * Math.PI) / 180 - alpha;
       if (Math.cos(hourAngle) === 0) {
-        longitude = longitude >= 0 ? longitude - eps : longitude + eps
-        hourAngle = gmst * 15 * Math.PI / 180 + longitude * Math.PI / 180 - alpha;
+        longitude = longitude >= 0 ? longitude - eps : longitude + eps;
+        hourAngle =
+          (gmst * 15 * Math.PI) / 180 + (longitude * Math.PI) / 180 - alpha;
       }
 
       const A = Math.cos(delta) * Math.cos(hourAngle);
@@ -135,12 +156,12 @@ export const night = (date: Date | string, options?: NightPolygonOptions): Featu
 
         if ((C + x1 * B) * A > 0) {
           const lat1 = Math.asin(x1);
-          upper.push([longitude, lat1 * 180 / Math.PI]);
+          upper.push([longitude, (lat1 * 180) / Math.PI]);
         }
 
         if ((C + x2 * B) * A > 0) {
           const lat2 = Math.asin(x2);
-          lower.push([longitude, lat2 * 180 / Math.PI]);
+          lower.push([longitude, (lat2 * 180) / Math.PI]);
         }
       }
       if (D < 0 || i === division) {
@@ -177,12 +198,12 @@ export const night = (date: Date | string, options?: NightPolygonOptions): Featu
   return {
     type: "Feature",
     properties: {
-      "datetime": d.toISOString(),
-      "elevation": elevationDegree
+      datetime: d.toISOString(),
+      elevation: elevationDegree,
     },
     geometry: {
       type: "MultiPolygon",
-      coordinates: longlats
-    }
-  }
-}
+      coordinates: longlats,
+    },
+  };
+};

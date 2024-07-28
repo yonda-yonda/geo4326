@@ -75,7 +75,6 @@ function _within(
   return Math.abs(theta) > 1;
 }
 
-
 export function within(
   point: Position,
   linearRing: Points,
@@ -114,14 +113,14 @@ function _intersection(
 
   if (
     ((p1[0] - p2[0]) * (p3[1] - p1[1]) + (p1[1] - p2[1]) * (p1[0] - p3[0])) *
-    ((p1[0] - p2[0]) * (p4[1] - p1[1]) + (p1[1] - p2[1]) * (p1[0] - p4[0])) >
+      ((p1[0] - p2[0]) * (p4[1] - p1[1]) + (p1[1] - p2[1]) * (p1[0] - p4[0])) >
     0
   )
     return false;
 
   if (
     ((p3[0] - p4[0]) * (p1[1] - p3[1]) + (p3[1] - p4[1]) * (p3[0] - p1[0])) *
-    ((p3[0] - p4[0]) * (p2[1] - p3[1]) + (p3[1] - p4[1]) * (p3[0] - p2[0])) >
+      ((p3[0] - p4[0]) * (p2[1] - p3[1]) + (p3[1] - p4[1]) * (p3[0] - p2[0])) >
     0
   )
     return false;
@@ -162,7 +161,10 @@ export function selfintersection(linearRing: Points): boolean {
 
   const ring: number[][] = [];
   for (let i = 0; i < linearRing.length - 1; i++) {
-    if (linearRing[i][0] !== linearRing[i + 1][0] || linearRing[i][1] !== linearRing[i + 1][1])
+    if (
+      linearRing[i][0] !== linearRing[i + 1][0] ||
+      linearRing[i][1] !== linearRing[i + 1][1]
+    )
       ring.push(linearRing[i]);
   }
   ring.push(linearRing[linearRing.length - 1]);
@@ -171,8 +173,8 @@ export function selfintersection(linearRing: Points): boolean {
     return (
       Math.abs(
         ring[0][1] * (ring[1][0] - ring[2][0]) +
-        ring[1][1] * (ring[2][0] - ring[0][0]) +
-        ring[2][1] * (ring[0][0] - ring[1][0])
+          ring[1][1] * (ring[2][0] - ring[0][0]) +
+          ring[2][1] * (ring[0][0] - ring[1][0])
       ) < EPSILON
     );
 
@@ -192,8 +194,8 @@ export function getCrs(code: string | number): string {
   if (typeof epsgNumber === "string") return epsgNumber;
 
   const epsgDef = (epsgIndex as any)[epsgNumber]; // eslint-disable-line
-  if (epsgDef) {
-    return epsgDef; // eslint-disable-line @typescript-eslint/no-unsafe-return
+  if (typeof epsgDef === "string") {
+    return epsgDef;
   } else {
     throw new InvalidCodeError();
   }
@@ -202,7 +204,11 @@ export function getCrs(code: string | number): string {
 export function hasSingularity(points: number[][]): boolean {
   if (Array.isArray(points)) {
     for (let i = 0; i < points.length; i++) {
-      if (Array.isArray(points[i]) && points[i].some((v) => isNaN(v) || v === Infinity || v === -Infinity)) return true;
+      if (
+        Array.isArray(points[i]) &&
+        points[i].some((v) => isNaN(v) || v === Infinity || v === -Infinity)
+      )
+        return true;
     }
   }
   return false;
@@ -214,14 +220,20 @@ export function overlapping(l1: Points, l2: Points): boolean {
   validLinearRing(l2);
 
   for (let i = 0; i < l1.length - 1; i++) {
-    if (_within(l1[i], l2, {
-      includeBorder: true
-    })) return true;
+    if (
+      _within(l1[i], l2, {
+        includeBorder: true,
+      })
+    )
+      return true;
   }
   for (let i = 0; i < l2.length - 1; i++) {
-    if (_within(l2[i], l1, {
-      includeBorder: true
-    })) return true;
+    if (
+      _within(l2[i], l1, {
+        includeBorder: true,
+      })
+    )
+      return true;
   }
   for (let i = 0; i < l1.length - 1; i++) {
     for (let j = 0; j < l2.length - 1; j++) {
@@ -238,9 +250,12 @@ export function enclosing(inner: Points, outer: Points): boolean {
   validLinearRing(outer);
 
   for (let i = 0; i < inner.length - 1; i++) {
-    if (!_within(inner[i], outer, {
-      includeBorder: true
-    })) return false;
+    if (
+      !_within(inner[i], outer, {
+        includeBorder: true,
+      })
+    )
+      return false;
   }
   return true;
 }

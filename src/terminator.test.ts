@@ -1,4 +1,4 @@
-const { night } = require("../dist/terminator.js");
+import { night } from "./terminator";
 
 it("night", () => {
   expect(night("2023-10-01T07:00:00Z")).toEqual({

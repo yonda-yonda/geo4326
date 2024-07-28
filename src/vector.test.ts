@@ -1,4 +1,4 @@
-const {
+import {
   unit,
   norm,
   add,
@@ -6,7 +6,7 @@ const {
   dot,
   cross,
   rodoriguesRotate,
-} = require("../dist/vector.js");
+} from "./vector";
 
 it("norm", () => {
   expect(norm({ x: 1, y: 2, z: 2 })).toBe(3);

@@ -1,15 +1,15 @@
-const {
+import {
   validLinearRing,
   validPoints,
   validPoint,
-  validNumber
-} = require("../dist/_validates.js");
-const {
+  validNumber,
+} from "./_validates";
+import {
   InvalidLinearRingError,
   InvalidPointsError,
   InvalidPointError,
-  InvalidNumberError
-} = require("../dist/errors.js");
+  InvalidNumberError,
+} from "./errors";
 
 it("valid", () => {
   expect(
@@ -29,17 +29,9 @@ it("valid", () => {
     ])
   ).toBeUndefined();
 
-  expect(
-    validPoint(
-      [1, 0]
-    )
-  ).toBeUndefined();
+  expect(validPoint([1, 0])).toBeUndefined();
 
-  expect(
-    validNumber(
-      100
-    )
-  ).toBeUndefined();
+  expect(validNumber(100)).toBeUndefined();
 });
 
 it("invalid", () => {
@@ -50,7 +42,7 @@ it("invalid", () => {
       [1, 1],
       [0, "1"],
     ]);
-  }).toThrowError(InvalidLinearRingError);
+  }).toThrow(InvalidLinearRingError);
   expect(() => {
     validLinearRing([
       [0, 0],
@@ -58,48 +50,45 @@ it("invalid", () => {
       [1, 1],
       [0, 1],
     ]);
-  }).toThrowError(InvalidLinearRingError);
+  }).toThrow(InvalidLinearRingError);
   expect(() => {
     validLinearRing([
       [0, 0],
       [1, 0],
       [0, 0],
     ]);
-  }).toThrowError(InvalidLinearRingError);
+  }).toThrow(InvalidLinearRingError);
   expect(() => {
     validLinearRing(100);
-  }).toThrowError(InvalidLinearRingError);
+  }).toThrow(InvalidLinearRingError);
 
   expect(() => {
     validPoints([
       [0, 0],
       [0, "1"],
     ]);
-  }).toThrowError(InvalidPointsError);
+  }).toThrow(InvalidPointsError);
   expect(() => {
-    validPoints([
-      [0, 0],
-      [0],
-    ]);
-  }).toThrowError(InvalidPointsError);
+    validPoints([[0, 0], [0]]);
+  }).toThrow(InvalidPointsError);
   expect(() => {
     validPoints(100);
-  }).toThrowError(InvalidPointsError);
+  }).toThrow(InvalidPointsError);
 
   expect(() => {
     validPoint([0, "1"]);
-  }).toThrowError(InvalidPointError);
+  }).toThrow(InvalidPointError);
   expect(() => {
     validPoint([0]);
-  }).toThrowError(InvalidPointError);
+  }).toThrow(InvalidPointError);
 
   expect(() => {
     validNumber("100");
-  }).toThrowError(InvalidNumberError);
+  }).toThrow(InvalidNumberError);
   expect(() => {
     validNumber(Infinity);
-  }).toThrowError(InvalidNumberError);
+  }).toThrow(InvalidNumberError);
   expect(() => {
     validNumber(NaN);
-  }).toThrowError(InvalidNumberError);
+  }).toThrow(InvalidNumberError);
 });
