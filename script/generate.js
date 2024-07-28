@@ -1,9 +1,9 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const epsgIndexAll = require('epsg-index/all.json');
+const epsgIndexAll = require("epsg-index/all.json");
 
-const baseDir = './src/_generated';
+const baseDir = "./src/_generated";
 fs.mkdirSync(baseDir, { recursive: true });
 
 const subset = {};
@@ -13,9 +13,12 @@ for (const key in epsgIndexAll) {
 
 let content = `/* eslint-disable */\n\n`;
 
-const license = fs.readFileSync(require.resolve('epsg-index/license.md'), 'utf-8');
+const license = fs.readFileSync(
+  require.resolve("epsg-index/license.md"),
+  "utf-8"
+);
 content += `/*\n\nhttps://github.com/derhuerst/epsg-index\n\n${license}\n\n*/\n\n`;
 
 content += `export const epsgIndex = ${JSON.stringify(subset, null, 2)}`;
 
-fs.writeFileSync(path.resolve(baseDir, 'epsg-index.ts'), content);
+fs.writeFileSync(path.resolve(baseDir, "epsg-index.ts"), content);

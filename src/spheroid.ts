@@ -127,7 +127,7 @@ const _distance = (
         let Gamma = 0;
         while (cnt < options.maxCount) {
           Gamma = 1 - gamma0 ** 2;
-          const D = f * (1 + f) / 4 - 3 / 16 * f ** 2 * Gamma;
+          const D = (f * (1 + f)) / 4 - (3 / 16) * f ** 2 * Gamma;
           const gamma1 = q * (1 - D * Gamma);
           if (Math.abs(gamma0 - gamma1) < options.truncation) break;
           gamma0 = gamma1;
@@ -154,7 +154,7 @@ const _distance = (
         2 *
         Math.atan(
           (Math.tan((psi_d + psi_dd) / 2) * Math.sin(Math.abs(Sigma_d) / 2)) /
-          Math.cos(Delta_d / 2)
+            Math.cos(Delta_d / 2)
         );
     }
   }
@@ -169,23 +169,23 @@ const _distance = (
     const g =
       zone === 1
         ? Math.sqrt(
-          eta ** 2 * Math.cos(theta / 2) ** 2 +
-          xi ** 2 * Math.sin(theta / 2) ** 2
-        )
+            eta ** 2 * Math.cos(theta / 2) ** 2 +
+              xi ** 2 * Math.sin(theta / 2) ** 2
+          )
         : Math.sqrt(
-          eta ** 2 * Math.sin(theta / 2) ** 2 +
-          xi ** 2 * Math.cos(theta / 2) ** 2
-        );
+            eta ** 2 * Math.sin(theta / 2) ** 2 +
+              xi ** 2 * Math.cos(theta / 2) ** 2
+          );
     const h =
       zone === 1
         ? Math.sqrt(
-          eta_d ** 2 * Math.cos(theta / 2) ** 2 +
-          xi_d ** 2 * Math.sin(theta / 2) ** 2
-        )
+            eta_d ** 2 * Math.cos(theta / 2) ** 2 +
+              xi_d ** 2 * Math.sin(theta / 2) ** 2
+          )
         : Math.sqrt(
-          eta_d ** 2 * Math.sin(theta / 2) ** 2 +
-          xi_d ** 2 * Math.cos(theta / 2) ** 2
-        );
+            eta_d ** 2 * Math.sin(theta / 2) ** 2 +
+              xi_d ** 2 * Math.cos(theta / 2) ** 2
+          );
     sigma = 2 * Math.atan(g / h);
     J = 2 * g * h;
     K = h ** 2 - g ** 2;
@@ -221,13 +221,13 @@ const _distance = (
     A *
     (sigma -
       B *
-      J *
-      (zeta -
-        (B *
-          (K * (Gamma ** 2 - 2 * zeta ** 2) -
-            (B * zeta * (1 - 4 * K ** 2) * (3 * Gamma ** 2 - 4 * zeta ** 2)) /
-            6)) /
-        4))
+        J *
+        (zeta -
+          (B *
+            (K * (Gamma ** 2 - 2 * zeta ** 2) -
+              (B * zeta * (1 - 4 * K ** 2) * (3 * Gamma ** 2 - 4 * zeta ** 2)) /
+                6)) /
+            4))
   );
 };
 
@@ -318,9 +318,9 @@ const _haversine = (
     Math.asin(
       Math.sqrt(
         Math.sin((latRad1 - latRad2) / 2) ** 2 +
-        Math.cos(latRad1) *
-        Math.cos(latRad2) *
-        Math.sin((lonRad1 - lonRad2) / 2) ** 2
+          Math.cos(latRad1) *
+            Math.cos(latRad2) *
+            Math.sin((lonRad1 - lonRad2) / 2) ** 2
       )
     )
   );
@@ -365,31 +365,31 @@ const _area = (linearRing: Points, userOptions: AreaOptions = {}): number => {
         Math.sin(lon1) *
         Math.sin(lat2) +
         Math.cos(lat1) *
-        Math.cos(lon1) *
+          Math.cos(lon1) *
+          Math.cos(lat2) *
+          Math.sin(lon2) *
+          Math.sin(lat0) +
         Math.cos(lat2) *
-        Math.sin(lon2) *
-        Math.sin(lat0) +
+          Math.cos(lon2) *
+          Math.cos(lat0) *
+          Math.sin(lon0) *
+          Math.sin(lat1) -
         Math.cos(lat2) *
-        Math.cos(lon2) *
-        Math.cos(lat0) *
-        Math.sin(lon0) *
-        Math.sin(lat1) -
-        Math.cos(lat2) *
-        Math.cos(lon2) *
+          Math.cos(lon2) *
+          Math.cos(lat1) *
+          Math.sin(lon1) *
+          Math.sin(lat0) -
         Math.cos(lat1) *
-        Math.sin(lon1) *
-        Math.sin(lat0) -
-        Math.cos(lat1) *
-        Math.cos(lon1) *
+          Math.cos(lon1) *
+          Math.cos(lat0) *
+          Math.sin(lon0) *
+          Math.sin(lat2) -
         Math.cos(lat0) *
-        Math.sin(lon0) *
-        Math.sin(lat2) -
-        Math.cos(lat0) *
-        Math.cos(lon0) *
-        Math.cos(lat2) *
-        Math.sin(lon2) *
-        Math.sin(lat1) >
-        0
+          Math.cos(lon0) *
+          Math.cos(lat2) *
+          Math.sin(lon2) *
+          Math.sin(lat1) >
+      0
         ? 1
         : -1;
     const d1 = _haversine(lon0, lat0, lon1, lat1);
@@ -403,9 +403,9 @@ const _area = (linearRing: Points, userOptions: AreaOptions = {}): number => {
         Math.sqrt(
           Math.abs(
             Math.tan(s / 2) *
-            Math.tan((s - d1) / 2) *
-            Math.tan((s - d2) / 2) *
-            Math.tan((s - d3) / 2)
+              Math.tan((s - d1) / 2) *
+              Math.tan((s - d2) / 2) *
+              Math.tan((s - d3) / 2)
           )
         )
       );

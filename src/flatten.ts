@@ -57,7 +57,7 @@ export function _crossingAntimeridianPointLat(
   const [, y2] = p2;
   while (x1 < 0) x1 += 360;
   while (x2 < 0) x2 += 360;
-  const bound = 180 * Math.floor(Math.max(x1, x2) / 180)
+  const bound = 180 * Math.floor(Math.max(x1, x2) / 180);
 
   return linearInterpolationY([x1, y1], [x2, y2], bound);
 }
@@ -70,7 +70,9 @@ function _cutting(
   let ringIndex = start["to"] !== linearRing.length - 1 ? start["to"] : 0;
   const diff = linearRing[start["to"]][0] - linearRing[start["from"]][0];
   const r2l = Math.abs(diff) < 180 ? diff < 0 : diff > 0;
-  const boundLon = r2l ? 180 * Math.ceil(linearRing[ringIndex][0] / 180) : 180 * Math.floor(linearRing[ringIndex][0] / 180)
+  const boundLon = r2l
+    ? 180 * Math.ceil(linearRing[ringIndex][0] / 180)
+    : 180 * Math.floor(linearRing[ringIndex][0] / 180);
   const rtn: CutArea = { overflowing: !r2l, linearRing: [] };
 
   rtn.linearRing.push([
@@ -132,13 +134,13 @@ export function cutRingAtAntimeridian(
   if (crossingLats.length < 2)
     return !options.overflowing
       ? {
-        within: [linearRing],
-        outside: [],
-      }
+          within: [linearRing],
+          outside: [],
+        }
       : {
-        within: [],
-        outside: [linearRing],
-      };
+          within: [],
+          outside: [linearRing],
+        };
 
   crossingLats.sort(function (a, b) {
     return b.lat - a.lat;
@@ -176,7 +178,7 @@ export function cutRingAtAntimeridian(
 
 export function expandRingAtAntimeridian(linearRing: Points): Points {
   validLinearRing(linearRing);
-  const crossingPoints: { from: number, to: number }[] = [];
+  const crossingPoints: { from: number; to: number }[] = [];
   for (let i = 0; i < linearRing.length - 1; i++) {
     if (_isCrossingAntimeridian(linearRing[i][0], linearRing[i + 1][0])) {
       crossingPoints.push({
@@ -186,25 +188,24 @@ export function expandRingAtAntimeridian(linearRing: Points): Points {
     }
   }
 
-  if (crossingPoints.length < 2)
-    return linearRing
+  if (crossingPoints.length < 2) return linearRing;
 
   const ring = [...linearRing];
 
   let before = 0;
   for (let i = 0; i < crossingPoints.length; i++) {
     const startTo = crossingPoints[i].to;
-    const startFrom = crossingPoints[i].from
+    const startFrom = crossingPoints[i].from;
     const warp = ring[startTo][0] * ring[startFrom][0] < 0;
-    const endFrom = i < crossingPoints.length - 1 ? crossingPoints[i + 1].from : ring.length;
+    const endFrom =
+      i < crossingPoints.length - 1 ? crossingPoints[i + 1].from : ring.length;
 
     if (warp) {
       if (ring[startTo][0] < 0) {
         for (let j = startTo; j < endFrom; j++) {
           ring[j][0] += 360;
         }
-      }
-      else {
+      } else {
         for (let j = before; j <= startFrom; j++) {
           ring[j][0] += 360;
         }

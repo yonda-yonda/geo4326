@@ -1,11 +1,11 @@
-const {
+import {
   nadir,
   subSatelliteTrack,
   toLonLat,
   footprint,
   accessArea,
-} = require("../dist/satellite.js");
-const { LookingAwayError } = require("../dist/errors.js");
+} from "./satellite";
+import { LookingAwayError } from "./errors";
 
 // SENTINEL-1A
 const tle1 = [
@@ -20,21 +20,17 @@ const tle2 = [
 
 it("nadir", () => {
   expect(nadir(tle1[0], tle1[1], new Date("2023-09-21T20:00:00Z"))).toEqual([
-    152.63639371243076,
-    15.4476525220903,
+    152.63639371243076, 15.4476525220903,
   ]);
   expect(nadir(tle1[0], tle1[1], new Date("2023-09-23T01:15:00Z"))).toEqual([
-    -156.7709990357516,
-    79.17164810392494,
+    -156.7709990357516, 79.17164810392494,
   ]);
 
   expect(nadir(tle2[0], tle2[1], new Date("2023-09-21T20:45:00Z"))).toEqual([
-    168.60586469100184,
-    -47.9046033988177,
+    168.60586469100184, -47.9046033988177,
   ]);
   expect(nadir(tle2[0], tle2[1], new Date("2023-09-21T20:50:00Z"))).toEqual([
-    -163.89771109395022,
-    -53.0596273195754,
+    -163.89771109395022, -53.0596273195754,
   ]);
 });
 
@@ -1225,7 +1221,7 @@ it("footprint", () => {
     footprint(tle1[0], tle1[1], new Date("2023-09-21T20:00:00Z"), {
       fov: [120, 120],
     })
-  ).toThrowError(LookingAwayError);
+  ).toThrow(LookingAwayError);
 });
 
 it("accessArea", () => {
@@ -1974,5 +1970,5 @@ it("accessArea", () => {
         roll: 80,
       }
     )
-  ).toThrowError(LookingAwayError);
+  ).toThrow(LookingAwayError);
 });

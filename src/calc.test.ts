@@ -1,8 +1,8 @@
-const {
+import {
   linearInterpolationX,
   linearInterpolationY,
   linearInterpolationPoints,
-} = require("../dist/calc.js");
+} from "./calc";
 
 it("linearInterpolationX", () => {
   expect(linearInterpolationX([0, 0], [10, 10], 5)).toBe(5);

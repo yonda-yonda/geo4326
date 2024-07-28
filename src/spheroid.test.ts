@@ -1,7 +1,7 @@
-const {
+import {
   distance,
   area
-} = require("../dist/spheroid.js");
+} from "./spheroid";
 
 it("distance", () => {
   expect(
@@ -89,6 +89,7 @@ it("distance", () => {
           [129.74475044444443, 35.65502847222223],
         ],
       },
+      properties: {}
     })
   ).toBe(3616673.1034550117);
   expect(
@@ -310,6 +311,7 @@ it("area", () => {
           ],
         ],
       },
+      properties: {}
     })
   ).toBe(7158593915761.758);
 

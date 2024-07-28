@@ -5,12 +5,12 @@ import {
   InvalidLinearRingError,
 } from "./errors";
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function validNumber(v: any): void {
   if (typeof v !== "number" || v - v !== 0) throw new InvalidNumberError();
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function validPoint(point: any): void {
   try {
     if (!Array.isArray(point)) throw new Error();
@@ -23,7 +23,7 @@ export function validPoint(point: any): void {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function validPoints(points: any): void {
   try {
     if (!Array.isArray(points)) throw new Error();
@@ -35,14 +35,16 @@ export function validPoints(points: any): void {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function validLinearRing(points: any): void {
   try {
     validPoints(points);
     if (
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      points.length <= 3 || points[0][0] !== points[points.length - 1][0] || points[0][1] !== points[points.length - 1][1]
-    ) throw new Error();
+      points.length <= 3 ||
+      points[0][0] !== points[points.length - 1][0] ||
+      points[0][1] !== points[points.length - 1][1]
+    )
+      throw new Error();
   } catch {
     throw new InvalidLinearRingError();
   }
