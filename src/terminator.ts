@@ -1,4 +1,5 @@
 import { Feature, MultiPolygon } from "geojson";
+import { isCcw } from "./utils";
 
 const getJulianDate = (date: Date | number): number => {
   // https://www5d.biglobe.ne.jp/~noocyte/Programming/GregorianAndJulianCalendars.html
@@ -129,7 +130,9 @@ export const night = (
     path.push([180, latitude]);
     path.push([-180, latitude]);
     path.unshift([-180, latitude]);
-    if (delta) path.reverse();
+    if (delta > 0) {
+      path.reverse();
+    }
     longlats.push([path]);
   } else {
     let upper: number[][] = [];
@@ -170,12 +173,16 @@ export const night = (
         if (upper.length > 0) {
           if (lower.length > 0) {
             path = [...lower, ...upper.reverse(), lower[0]];
+            if (!isCcw(path)) {
+              path.reverse();
+            }
           } else {
             path = [...upper];
             path.push([path[path.length - 1][0], latitude]);
             path.push([path[0][0], latitude]);
             path.unshift([path[0][0], latitude]);
-            path.reverse();
+
+            if (delta > 0) path.reverse();
           }
         } else {
           if (lower.length > 0) {
@@ -183,6 +190,8 @@ export const night = (
             path.push([path[path.length - 1][0], latitude]);
             path.push([path[0][0], latitude]);
             path.unshift([path[0][0], latitude]);
+
+            if (delta > 0) path.reverse();
           }
         }
 
