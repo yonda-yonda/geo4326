@@ -28,7 +28,7 @@ transform.geojsonFromCornerCoordinates(
 )
 ```
 
-**result**
+### result
 
 ```JSON
 {
