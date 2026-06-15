@@ -16,6 +16,19 @@ function deepClose(a: unknown, b: unknown, o: CloseOpts): boolean {
   if (Array.isArray(a) && Array.isArray(b)) {
     return a.length === b.length && a.every((v, i) => deepClose(v, b[i], o));
   }
+  if (
+    a !== null &&
+    b !== null &&
+    typeof a === "object" &&
+    typeof b === "object"
+  ) {
+    const ao = a as Record<string, unknown>;
+    const bo = b as Record<string, unknown>;
+    const ak = Object.keys(ao);
+    const bk = Object.keys(bo);
+    if (ak.length !== bk.length) return false;
+    return ak.every((k) => k in bo && deepClose(ao[k], bo[k], o));
+  }
   return Object.is(a, b);
 }
 

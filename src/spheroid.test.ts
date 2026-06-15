@@ -170,7 +170,7 @@ it("area", () => {
       [112.50000000000001, -55.37911044801049],
       [-4.921875000000001, 29.53522956294847],
     ]),
-  ).toBe(96275969765399.52);
+  ).toBeDeepCloseTo(96275969765399.52);
 
   expect(
     area(
@@ -184,8 +184,8 @@ it("area", () => {
         flattening: 298.257222101,
       },
     ),
-    // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
-  ).toBe(96275969763778.62); // 96275969.764 km2 (maps.gsi.go.jp)
+    // eslint-disable-next-line no-loss-of-precision
+  ).toBeDeepCloseTo(96275969763778.62); // 96275969.764 km2 (maps.gsi.go.jp)
 
   expect(
     area([
@@ -196,7 +196,7 @@ it("area", () => {
       [155.56297302246097, -19.556554999011606],
       [144.84031677246097, -7.184694613606626],
     ]),
-  ).toBe(2839026248376.057);
+  ).toBeDeepCloseTo(2839026248376.057);
 
   expect(
     area(
@@ -212,7 +212,7 @@ it("area", () => {
         flattening: 298.257222101,
       },
     ),
-  ).toBe(2839026248293.917); // 2839026.248 km2 (maps.gsi.go.jp)
+  ).toBeDeepCloseTo(2839026248293.917); // 2839026.248 km2 (maps.gsi.go.jp)
 
   expect(
     area([
@@ -221,7 +221,7 @@ it("area", () => {
       [89.95880126953125, -23.599228183239397],
       [246.75567626953128, 17.607375018147252],
     ]),
-  ).toBe(119208687689312);
+  ).toBeDeepCloseTo(119208687689312);
 
   expect(
     area(
@@ -235,7 +235,7 @@ it("area", () => {
         flattening: 298.257222101,
       },
     ),
-  ).toBe(119208687687359.17); // 119208687.687 km2 (maps.gsi.go.jp)
+  ).toBeDeepCloseTo(119208687687359.17); // 119208687.687 km2 (maps.gsi.go.jp)
 
   expect(
     area([
@@ -262,7 +262,7 @@ it("area", () => {
       [233.39630126953128, -53.9787048350094],
       [259.4119262695313, -46.82637528602131],
     ]),
-  ).toBe(407613032717114.2);
+  ).toBeDeepCloseTo(407613032717114.2);
 
   expect(
     area(
@@ -294,7 +294,7 @@ it("area", () => {
         flattening: 298.257222101,
       },
     ),
-  ).toBe(407613032713194.8); // 407613032.713 km2 (maps.gsi.go.jp)
+  ).toBeDeepCloseTo(407613032713194.8); // 407613032.713 km2 (maps.gsi.go.jp)
 
   expect(
     area({
@@ -319,7 +319,7 @@ it("area", () => {
       },
       properties: {},
     }),
-  ).toBe(7158593915761.758);
+  ).toBeDeepCloseTo(7158593915761.758);
 
   expect(
     area({
@@ -334,7 +334,7 @@ it("area", () => {
         ],
       ],
     }),
-  ).toBe(8233200413903.076);
+  ).toBeDeepCloseTo(8233200413903.076);
 
   expect(
     area({
@@ -365,5 +365,5 @@ it("area", () => {
         ],
       ],
     }),
-  ).toBe(8233200413903.076);
+  ).toBeDeepCloseTo(8233200413903.076);
 });
