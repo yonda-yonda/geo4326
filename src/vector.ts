@@ -1,4 +1,4 @@
-import { EciVec3 } from "satellite.js";
+import type { EciVec3 } from "satellite.js";
 
 export function norm(vec: EciVec3<number>): number {
   return Math.sqrt(vec.x ** 2 + vec.y ** 2 + vec.z ** 2);
@@ -15,7 +15,7 @@ export function unit(vec: EciVec3<number>): EciVec3<number> {
 
 export function add(
   vec1: EciVec3<number>,
-  vec2: EciVec3<number>
+  vec2: EciVec3<number>,
 ): EciVec3<number> {
   return {
     x: vec1.x + vec2.x,
@@ -26,7 +26,7 @@ export function add(
 
 export function multiple(
   vec: EciVec3<number>,
-  scaler: number
+  scaler: number,
 ): EciVec3<number> {
   return {
     x: vec.x * scaler,
@@ -41,7 +41,7 @@ export function dot(vec1: EciVec3<number>, vec2: EciVec3<number>): number {
 
 export function cross(
   vec1: EciVec3<number>,
-  vec2: EciVec3<number>
+  vec2: EciVec3<number>,
 ): EciVec3<number> {
   return {
     x: vec1.y * vec2.z - vec1.z * vec2.y,
@@ -53,7 +53,7 @@ export function cross(
 export function rodoriguesRotate(
   axis: EciVec3<number>,
   degrees: number,
-  vec: EciVec3<number>
+  vec: EciVec3<number>,
 ): EciVec3<number> {
   // Rodrigues' rotation formula
   // axis must be unit vector.
@@ -70,7 +70,7 @@ export function rodoriguesRotate(
           axis.x * axis.z * (1 - Math.cos(radians)) +
           axis.y * Math.sin(radians),
       },
-      vec
+      vec,
     ),
     y: dot(
       {
@@ -82,7 +82,7 @@ export function rodoriguesRotate(
           axis.y * axis.z * (1 - Math.cos(radians)) -
           axis.x * Math.sin(radians),
       },
-      vec
+      vec,
     ),
     z: dot(
       {
@@ -94,7 +94,7 @@ export function rodoriguesRotate(
           axis.x * Math.sin(radians),
         z: axis.z ** 2 * (1 - Math.cos(radians)) + Math.cos(radians),
       },
-      vec
+      vec,
     ),
   };
 }

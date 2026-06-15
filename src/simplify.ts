@@ -1,5 +1,5 @@
 import type { Position } from "geojson";
-import { Points } from "./types";
+import type { Points } from "./types";
 import { validLinearRing } from "./_validates";
 import { InvalidSimplifyError } from "./errors";
 import { area as calcArea } from "./utils";
@@ -11,7 +11,7 @@ const _dist2 = (p1: Position, p2: Position): number => {
 const _perpendicular = (
   p1: Position,
   p2: Position,
-  target: Position
+  target: Position,
 ): number => {
   const a = (p1[1] - p2[1]) / (p1[0] - p2[0]);
   const b = -a * p2[0] + p2[1];
@@ -23,7 +23,7 @@ const _rdpCandidates = (
   last: number,
   linearRing: Points,
   threshold: number,
-  area: boolean
+  area: boolean,
 ): {
   index: number;
   score: number;
@@ -70,19 +70,17 @@ export function rdp(linearRing: Points, userOptions?: rdpOptions): Points {
     https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm
     */
   validLinearRing(linearRing);
-  const options = Object.assign(
-    {
-      area: false,
-      threshold: 0.001,
-      limit: Infinity,
-    },
-    userOptions
-  );
+  const options = {
+    area: false,
+    threshold: 0.001,
+    limit: Infinity,
+    ...userOptions,
+  };
 
   if (options.area) {
     if (options.threshold < 0 || options.threshold >= 1)
       throw new InvalidSimplifyError(
-        "when area is true, threshold must be between 0 and 1."
+        "when area is true, threshold must be between 0 and 1.",
       );
   } else {
     if (options.threshold < 0)
@@ -140,19 +138,17 @@ export function vw(linearRing: Points, userOptions?: vwOptions): Points {
     https://en.wikipedia.org/wiki/Visvalingam%E2%80%93Whyatt_algorithm
     */
   validLinearRing(linearRing);
-  const options = Object.assign(
-    {
-      rate: false,
-      threshold: 0.001,
-      limit: Infinity,
-    },
-    userOptions
-  );
+  const options = {
+    rate: false,
+    threshold: 0.001,
+    limit: Infinity,
+    ...userOptions,
+  };
 
   if (options.rate) {
     if (options.threshold < 0 || options.threshold >= 1)
       throw new InvalidSimplifyError(
-        "when rate is true, threshold must be between 0 and 1."
+        "when rate is true, threshold must be between 0 and 1.",
       );
   } else {
     if (options.threshold < 0)

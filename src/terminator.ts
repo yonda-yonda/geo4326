@@ -1,4 +1,4 @@
-import { Feature, MultiPolygon } from "geojson";
+import type { Feature, MultiPolygon } from "geojson";
 import { isCcw } from "./utils";
 
 const getJulianDate = (date: Date | number): number => {
@@ -37,13 +37,13 @@ const getEclipticObliquity = (jd: number): number => {
 
 const getSunEquatorialPosition = (
   longitude: number,
-  obliquity: number
+  obliquity: number,
 ): number[] => {
   // 日の出・日の入りの計算 天体の出没時刻の求め方 長沢工著 ISBN4-8052-0634-9 p74
   const delta = Math.asin(Math.sin(longitude) * Math.sin(obliquity)); // 赤緯 -90deg to 90deg
   const alpha = Math.atan2(
     (Math.sin(longitude) * Math.cos(obliquity)) / Math.cos(delta),
-    Math.cos(longitude) / Math.cos(delta)
+    Math.cos(longitude) / Math.cos(delta),
   ); // 赤経 -180deg to 180deg
 
   // radians
@@ -75,13 +75,14 @@ export interface NightPolygonOptions {
 
 export const night = (
   date: Date | string,
-  options?: NightPolygonOptions
+  options?: NightPolygonOptions,
 ): Feature<MultiPolygon> => {
-  const { division, elevation, eps } = Object.assign(
-    { division: 360, elevation: 0, eps: 1e-8 },
-    options
-  );
-
+  const { division, elevation, eps } = {
+    division: 360,
+    elevation: 0,
+    eps: 1e-8,
+    ...options,
+  };
   const d = date instanceof Date ? date : new Date(date);
 
   const elevationDegree =
@@ -96,7 +97,7 @@ export const night = (
   const eclipticObliquity = getEclipticObliquity(jd); // 黄道傾角
   const [alpha, delta] = getSunEquatorialPosition(
     sunEclipticLongitude,
-    eclipticObliquity
+    eclipticObliquity,
   );
 
   const longlats: number[][][][] = [];

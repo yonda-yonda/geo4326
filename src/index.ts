@@ -9,3 +9,4 @@ export * as spheroid from "./spheroid";
 export * as transform from "./transform";
 export * as simplify from "./simplify";
 export * as terminator from "./terminator";
+export * as crs from "./crs";

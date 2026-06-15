@@ -1,32 +1,30 @@
 import proj4 from "proj4";
 import type { Feature, Position } from "geojson";
-import { Points, CutRing } from "./types";
+import type { Points, CutRing } from "./types";
 import { validLinearRing } from "./_validates";
-import { isCcw, within, intersection, getCrs, hasSingularity } from "./utils";
-import {
-  CrossingLat,
-  cutRingAtAntimeridian,
-  expandRingAtAntimeridian,
-} from "./flatten";
+import { isCcw, within, intersection, hasSingularity } from "./utils";
+import { getCrs } from "./crs";
+import { cutRingAtAntimeridian, expandRingAtAntimeridian } from "./flatten";
+import type { CrossingLat } from "./flatten";
 import { linearInterpolationY, linearInterpolationPoints } from "./calc";
 import {
   InvalidLinearRingEnclosingPoleError,
   EnclosingBothPolesError,
   InvalidBoundsError,
-  NotAllowedWarpBoundsError,
-  FalidCuttingAntimeridianError,
+  NotAllowedWrapBoundsError,
+  FailedCuttingAntimeridianError,
   NotAllowedCwLinearRingError,
 } from "./errors";
 import {
   CRS_EPSG4326,
-  CRS_ARCTIC_POLAR_STEROGRAPHIC,
-  CRS_ANTARCTIC_POLAR_STEROGRAPHIC,
+  CRS_ARCTIC_POLAR_STEREOGRAPHIC,
+  CRS_ANTARCTIC_POLAR_STEREOGRAPHIC,
 } from "./constants";
 
 export function _transform(
   points: Points,
   srcCrs: string,
-  dstCrs: string
+  dstCrs: string,
 ): Points {
   if (srcCrs === dstCrs) return points;
   return points.map((p: Position): Position => {
@@ -39,12 +37,12 @@ export function _transformEnclosingPoleRing(
   linearRing: Points,
   srcCrs: string,
   partition: number,
-  north: boolean
+  north: boolean,
 ): Points {
   const length = linearRing.length - 1;
   const tempCRS = north
-    ? CRS_ARCTIC_POLAR_STEROGRAPHIC
-    : CRS_ANTARCTIC_POLAR_STEROGRAPHIC;
+    ? CRS_ARCTIC_POLAR_STEREOGRAPHIC
+    : CRS_ANTARCTIC_POLAR_STEREOGRAPHIC;
   const endY = north ? Number.MAX_SAFE_INTEGER : Number.MIN_SAFE_INTEGER;
   const poleLat = north ? 90 : -90;
   const polarSterographicLinearRing = _transform(linearRing, srcCrs, tempCRS);
@@ -55,7 +53,7 @@ export function _transformEnclosingPoleRing(
         polarSterographicLinearRing[i],
         polarSterographicLinearRing[i + 1],
         [0, 0],
-        [0, endY]
+        [0, endY],
       )
     )
       crossingLats.push({
@@ -64,7 +62,7 @@ export function _transformEnclosingPoleRing(
         lat: linearInterpolationY(
           polarSterographicLinearRing[i],
           polarSterographicLinearRing[i + 1],
-          0
+          0,
         ),
       });
   }
@@ -85,10 +83,10 @@ export function _transformEnclosingPoleRing(
         linearInterpolationPoints(
           polarSterographicLinearRing[crossingLat["from"]],
           [0, crossingLat["lat"]],
-          { partition }
+          { partition },
         ),
         tempCRS,
-        CRS_EPSG4326
+        CRS_EPSG4326,
       );
       ret = ret.concat(transformed1.slice(0, transformed1.length - 1));
       if (transformed1[0][0] >= 0) {
@@ -110,10 +108,10 @@ export function _transformEnclosingPoleRing(
         linearInterpolationPoints(
           [0, crossingLat["lat"]],
           polarSterographicLinearRing[crossingLat["to"]],
-          { partition }
+          { partition },
         ),
         tempCRS,
-        CRS_EPSG4326
+        CRS_EPSG4326,
       );
       ret = ret.concat(transformed2.slice(1, transformed2.length - 1));
     } else {
@@ -121,10 +119,10 @@ export function _transformEnclosingPoleRing(
         linearInterpolationPoints(
           polarSterographicLinearRing[i],
           polarSterographicLinearRing[i + 1],
-          { partition }
+          { partition },
         ),
         tempCRS,
-        CRS_EPSG4326
+        CRS_EPSG4326,
       );
       ret = ret.concat(transformed.slice(0, transformed.length - 1));
     }
@@ -136,7 +134,7 @@ export function _transformEnclosingPoleRing(
 export function transformRing(
   linearRing: Points,
   srcCrs: string | number,
-  userOptions = {}
+  userOptions = {},
 ): Points {
   /*
     not support linear rings of including both poles.
@@ -144,12 +142,10 @@ export function transformRing(
   validLinearRing(linearRing);
   srcCrs = getCrs(srcCrs);
 
-  const options = Object.assign(
-    {
-      partition: 0,
-    },
-    userOptions
-  );
+  const options = {
+    partition: 0,
+    ...userOptions,
+  };
   const length = linearRing.length - 1;
   const northPole = _transform([[0, 90]], CRS_EPSG4326, srcCrs)[0]; // approximate 90deg
   const enclosingNorthPole =
@@ -165,14 +161,14 @@ export function transformRing(
       linearRing,
       srcCrs,
       options.partition,
-      true
+      true,
     );
   if (enclosingSouthPole)
     return _transformEnclosingPoleRing(
       linearRing,
       srcCrs,
       options.partition,
-      false
+      false,
     );
 
   let interpolatedLinearRing: Points = [];
@@ -182,10 +178,10 @@ export function transformRing(
       linearRing[i + 1],
       {
         partition: options.partition,
-      }
+      },
     );
     interpolatedLinearRing = interpolatedLinearRing.concat(
-      interpolated.slice(0, interpolated.length - 1)
+      interpolated.slice(0, interpolated.length - 1),
     );
   }
   interpolatedLinearRing.push(interpolatedLinearRing[0]);
@@ -197,7 +193,7 @@ export function transformRing(
 export function transformBbox(
   srcBbox: number[],
   srcCrs: string | number,
-  userOptions = {}
+  userOptions = {},
 ): number[] {
   /*
     input bbox is not allowed warp.
@@ -205,13 +201,11 @@ export function transformBbox(
   if (!(srcBbox.length === 4 || srcBbox.length === 6))
     throw new InvalidBoundsError();
 
-  const options = Object.assign(
-    {
-      partition: 9,
-      expand: false,
-    },
-    userOptions
-  );
+  const options = {
+    partition: 9,
+    expand: false,
+    ...userOptions,
+  };
 
   const hasHeight = srcBbox.length === 6;
   const left = srcBbox[0];
@@ -219,7 +213,7 @@ export function transformBbox(
   const right = hasHeight ? srcBbox[3] : srcBbox[2];
   const top = hasHeight ? srcBbox[4] : srcBbox[3];
 
-  if (right < left) throw new NotAllowedWarpBoundsError();
+  if (right < left) throw new NotAllowedWrapBoundsError();
 
   const points: Points = transformRing(
     [
@@ -230,7 +224,7 @@ export function transformBbox(
       [left, bottom],
     ],
     srcCrs,
-    { partition: options.partition }
+    { partition: options.partition },
   );
   const ys = points.map((p) => {
     return p[1];
@@ -257,7 +251,7 @@ export function transformBbox(
       xs1 = xs1.concat(
         lenearRing.map((p) => {
           return p[0];
-        })
+        }),
       );
     });
     let xs2: number[] = [];
@@ -265,7 +259,7 @@ export function transformBbox(
       xs2 = xs2.concat(
         lenearRing.map((p) => {
           return p[0];
-        })
+        }),
       );
     });
     if (srcBbox.length === 6)
@@ -284,24 +278,22 @@ export function transformBbox(
       Math.max(...ys),
     ];
   } catch {
-    throw new FalidCuttingAntimeridianError();
+    throw new FailedCuttingAntimeridianError();
   }
 }
 
 export function geojsonFromLinearRing(
   linearRing: Points,
   srcCrs: string | number,
-  userOptions = {}
+  userOptions = {},
 ): Feature {
   if (!isCcw(linearRing)) throw new NotAllowedCwLinearRingError();
 
-  const options = Object.assign(
-    {
-      partition: 9,
-      expand: false,
-    },
-    userOptions
-  );
+  const options = {
+    partition: 9,
+    expand: false,
+    ...userOptions,
+  };
   const points = transformRing(linearRing, srcCrs, {
     partition: options.partition,
   });
@@ -348,7 +340,7 @@ export function geojsonFromLinearRing(
     xs1 = xs1.concat(
       lenearRing.map((p) => {
         return p[0];
-      })
+      }),
     );
   });
   let xs2: number[] = [];
@@ -356,19 +348,19 @@ export function geojsonFromLinearRing(
     xs2 = xs2.concat(
       lenearRing.map((p) => {
         return p[0];
-      })
+      }),
     );
   });
   const coordinates: Position[][][] = [];
   coordinates.push(
     ring.within.map((r) => {
       return r;
-    })
+    }),
   );
   coordinates.push(
     ring.outside.map((r) => {
       return r;
-    })
+    }),
   );
   return {
     type: "Feature",
@@ -392,18 +384,16 @@ export function geojsonFromCornerCoordinates(
   upperRight: Position,
   lowerRight: Position,
   srcCrs: string | number,
-  userOptions = {}
+  userOptions = {},
 ): Feature {
-  const options = Object.assign(
-    {
-      partition: 9,
-      expand: false,
-    },
-    userOptions
-  );
+  const options = {
+    partition: 9,
+    expand: false,
+    ...userOptions,
+  };
   return geojsonFromLinearRing(
     [upperLeft, lowerLeft, lowerRight, upperRight, upperLeft],
     srcCrs,
-    { partition: options.partition, expand: options.expand }
+    { partition: options.partition, expand: options.expand },
   );
 }

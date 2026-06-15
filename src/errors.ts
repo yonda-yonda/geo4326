@@ -1,7 +1,7 @@
 abstract class CustomError extends Error {
   constructor(m: string) {
     super(m);
-    Object.setPrototypeOf(this, new.target.prototype);
+    this.name = new.target.name;
   }
 }
 
@@ -47,20 +47,20 @@ export class InvalidBoundsError extends CustomError {
   }
 }
 
-export class NotAllowedWarpBoundsError extends CustomError {
-  constructor(m = "not support warpping bounds.") {
+export class NotAllowedWrapBoundsError extends CustomError {
+  constructor(m = "not support wrapping bounds.") {
     super(m);
   }
 }
 
-export class InvalidSelfintersectionError extends CustomError {
-  constructor(m = "invalid selfintersection.") {
+export class InvalidSelfIntersectionError extends CustomError {
+  constructor(m = "invalid self-intersection.") {
     super(m);
   }
 }
 
-export class FalidCuttingAntimeridianError extends CustomError {
-  constructor(m = "falid cutting antimeridian.") {
+export class FailedCuttingAntimeridianError extends CustomError {
+  constructor(m = "failed cutting antimeridian.") {
     super(m);
   }
 }

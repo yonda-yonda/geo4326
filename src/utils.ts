@@ -1,9 +1,7 @@
 import type { Position } from "geojson";
-import { Points } from "./types";
+import type { Points } from "./types";
 import { validPoint, validLinearRing } from "./_validates";
-import { InvalidCodeError } from "./errors";
 import { EPSILON } from "./constants";
-import { epsgIndex } from "./_generated/epsg-index";
 
 export function _eq(a: number, b: number): boolean {
   return Math.abs(a - b) < EPSILON;
@@ -42,17 +40,15 @@ type withinOptions = {
 function _within(
   point: Position,
   linearRing: Points,
-  userOptions: withinOptions = {}
+  userOptions: withinOptions = {},
 ): boolean {
   /*
     Winding Number Algorithm
   */
-  const options = Object.assign(
-    {
-      includeBorder: false,
-    },
-    userOptions
-  );
+  const options = {
+    includeBorder: false,
+    ...userOptions,
+  };
   const [x, y] = point;
 
   let theta = 0;
@@ -78,7 +74,7 @@ function _within(
 export function within(
   point: Position,
   linearRing: Points,
-  userOptions?: withinOptions
+  userOptions?: withinOptions,
 ): boolean {
   validPoint(point);
   validLinearRing(linearRing);
@@ -89,7 +85,7 @@ function _intersection(
   p1: Position,
   p2: Position,
   p3: Position,
-  p4: Position
+  p4: Position,
 ): boolean {
   /*
     When p1 -> p2, p3 -> p4 are crossing || points more than 3 are on a line,
@@ -132,7 +128,7 @@ export function intersection(
   p1: Position,
   p2: Position,
   p3: Position,
-  p4: Position
+  p4: Position,
 ): boolean {
   validPoint(p1);
   validPoint(p2);
@@ -153,7 +149,7 @@ const _checkLinesintersection = (lines: Position[][], start = 0): boolean => {
   return _checkLinesintersection(lines, start + 1);
 };
 
-export function selfintersection(linearRing: Points): boolean {
+export function selfIntersection(linearRing: Points): boolean {
   /* 
     not support warp polygon.
   */
@@ -174,7 +170,7 @@ export function selfintersection(linearRing: Points): boolean {
       Math.abs(
         ring[0][1] * (ring[1][0] - ring[2][0]) +
           ring[1][1] * (ring[2][0] - ring[0][0]) +
-          ring[2][1] * (ring[0][0] - ring[1][0])
+          ring[2][1] * (ring[0][0] - ring[1][0]),
       ) < EPSILON
     );
 
@@ -184,21 +180,6 @@ export function selfintersection(linearRing: Points): boolean {
   }
 
   return _checkLinesintersection(lines);
-}
-
-export function getCrs(code: string | number): string {
-  const epsgNumber =
-    typeof code === "string" && !!/^epsg:/i.exec(code)
-      ? Number(code.replace(/^epsg:/i, ""))
-      : code;
-  if (typeof epsgNumber === "string") return epsgNumber;
-
-  const epsgDef = (epsgIndex as any)[epsgNumber]; // eslint-disable-line
-  if (typeof epsgDef === "string") {
-    return epsgDef;
-  } else {
-    throw new InvalidCodeError();
-  }
 }
 
 export function hasSingularity(points: number[][]): boolean {

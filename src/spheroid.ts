@@ -8,8 +8,8 @@ import type {
   MultiLineString,
 } from "geojson";
 import { validNumber, validPoint, validLinearRing } from "./_validates";
-import { Points } from "./types";
-import { SEMEMAJOR_AXIS_WGS84, FLATTENING_WGS84 } from "./constants";
+import type { Points } from "./types";
+import { SEMIMAJOR_AXIS_WGS84, FLATTENING_WGS84 } from "./constants";
 import {
   NotConvergeCalculationError,
   NotSupportMeasuringDistance,
@@ -32,22 +32,20 @@ export interface AreaOptions {
 const _distance = (
   p1: Position,
   p2: Position,
-  userOptions: DistanceOptions = {}
+  userOptions: DistanceOptions = {},
 ): number => {
   // https://vldb.gsi.go.jp/sokuchi/surveycalc/surveycalc/algorithm/bl2st/bl2st.htm
   // https://www.tandfonline.com/doi/abs/10.1179/sre.1996.33.261.461
   validPoint(p1);
   validPoint(p2);
 
-  const options = Object.assign(
-    {
-      semimajorAxis: SEMEMAJOR_AXIS_WGS84,
-      flattening: FLATTENING_WGS84,
-      truncation: 1e-15,
-      maxCount: 100,
-    },
-    userOptions
-  );
+  const options = {
+    semimajorAxis: SEMIMAJOR_AXIS_WGS84,
+    flattening: FLATTENING_WGS84,
+    truncation: 1e-15,
+    maxCount: 100,
+    ...userOptions,
+  };
   validNumber(options.semimajorAxis);
   validNumber(options.flattening);
   validNumber(options.truncation);
@@ -62,19 +60,19 @@ const _distance = (
   const a = options.semimajorAxis;
   const f = 1 / options.flattening;
   const lonDiff = lon2 - lon1;
-  let lonDiffWarp = lonDiff;
-  if (lonDiff > Math.PI) lonDiffWarp -= 2 * Math.PI;
-  else if (lonDiff < -Math.PI) lonDiffWarp += 2 * Math.PI;
+  let lonDiffWrap = lonDiff;
+  if (lonDiff > Math.PI) lonDiffWrap -= 2 * Math.PI;
+  else if (lonDiff < -Math.PI) lonDiffWrap += 2 * Math.PI;
 
-  const L = Math.abs(lonDiffWarp);
+  const L = Math.abs(lonDiffWrap);
   const L_d = Math.PI - L;
   const Sigma = lat1 + lat2;
   const u1 =
-    lonDiffWarp >= 0
+    lonDiffWrap >= 0
       ? Math.atan((1 - f) * Math.tan(lat1))
       : Math.atan((1 - f) * Math.tan(lat2));
   const u2 =
-    lonDiffWarp >= 0
+    lonDiffWrap >= 0
       ? Math.atan((1 - f) * Math.tan(lat2))
       : Math.atan((1 - f) * Math.tan(lat1));
   const Sigma_d = u1 + u2;
@@ -154,7 +152,7 @@ const _distance = (
         2 *
         Math.atan(
           (Math.tan((psi_d + psi_dd) / 2) * Math.sin(Math.abs(Sigma_d) / 2)) /
-            Math.cos(Delta_d / 2)
+            Math.cos(Delta_d / 2),
         );
     }
   }
@@ -170,21 +168,21 @@ const _distance = (
       zone === 1
         ? Math.sqrt(
             eta ** 2 * Math.cos(theta / 2) ** 2 +
-              xi ** 2 * Math.sin(theta / 2) ** 2
+              xi ** 2 * Math.sin(theta / 2) ** 2,
           )
         : Math.sqrt(
             eta ** 2 * Math.sin(theta / 2) ** 2 +
-              xi ** 2 * Math.cos(theta / 2) ** 2
+              xi ** 2 * Math.cos(theta / 2) ** 2,
           );
     const h =
       zone === 1
         ? Math.sqrt(
             eta_d ** 2 * Math.cos(theta / 2) ** 2 +
-              xi_d ** 2 * Math.sin(theta / 2) ** 2
+              xi_d ** 2 * Math.sin(theta / 2) ** 2,
           )
         : Math.sqrt(
             eta_d ** 2 * Math.sin(theta / 2) ** 2 +
-              xi_d ** 2 * Math.cos(theta / 2) ** 2
+              xi_d ** 2 * Math.cos(theta / 2) ** 2,
           );
     sigma = 2 * Math.atan(g / h);
     J = 2 * g * h;
@@ -233,14 +231,14 @@ const _distance = (
 
 const _linestringDistance = (
   geometry: LineString,
-  userOptions: DistanceOptions = {}
+  userOptions: DistanceOptions = {},
 ): number => {
   return _arrayDistance(geometry.coordinates, userOptions);
 };
 
 const _multiLinestringPolygonDistance = (
   geometry: Polygon | MultiLineString,
-  userOptions: DistanceOptions = {}
+  userOptions: DistanceOptions = {},
 ): number => {
   let ret = 0;
   for (let i = 0; i < geometry.coordinates.length; i++) {
@@ -251,7 +249,7 @@ const _multiLinestringPolygonDistance = (
 
 const _multiPolygonDistance = (
   geometry: MultiPolygon,
-  userOptions: DistanceOptions = {}
+  userOptions: DistanceOptions = {},
 ): number => {
   let ret = 0;
   for (let i = 0; i < geometry.coordinates.length; i++) {
@@ -260,7 +258,7 @@ const _multiPolygonDistance = (
         type: "Polygon",
         coordinates: geometry.coordinates[i],
       },
-      userOptions
+      userOptions,
     );
   }
   return ret;
@@ -268,7 +266,7 @@ const _multiPolygonDistance = (
 
 const _arrayDistance = (
   points: Position[],
-  userOptions: DistanceOptions = {}
+  userOptions: DistanceOptions = {},
 ): number => {
   let ret = 0;
   for (let i = 0; i < points.length - 1; i++) {
@@ -279,7 +277,7 @@ const _arrayDistance = (
 
 export function distance(
   data: Points | Feature | Geometry,
-  userOptions: DistanceOptions = {}
+  userOptions: DistanceOptions = {},
 ): number {
   if (Array.isArray(data)) {
     return _arrayDistance(data, userOptions);
@@ -311,7 +309,7 @@ const _haversine = (
   lonRad1: number,
   latRad1: number,
   lonRad2: number,
-  latRad2: number
+  latRad2: number,
 ): number => {
   return (
     2 *
@@ -320,8 +318,8 @@ const _haversine = (
         Math.sin((latRad1 - latRad2) / 2) ** 2 +
           Math.cos(latRad1) *
             Math.cos(latRad2) *
-            Math.sin((lonRad1 - lonRad2) / 2) ** 2
-      )
+            Math.sin((lonRad1 - lonRad2) / 2) ** 2,
+      ),
     )
   );
 };
@@ -330,13 +328,11 @@ const _area = (linearRing: Points, userOptions: AreaOptions = {}): number => {
   // https://maps.gsi.go.jp/help/pdf/calc_area.pdf
   validLinearRing(linearRing);
 
-  const options = Object.assign(
-    {
-      semimajorAxis: SEMEMAJOR_AXIS_WGS84,
-      flattening: FLATTENING_WGS84,
-    },
-    userOptions
-  );
+  const options = {
+    semimajorAxis: SEMIMAJOR_AXIS_WGS84,
+    flattening: FLATTENING_WGS84,
+    ...userOptions,
+  };
   validNumber(options.semimajorAxis);
   validNumber(options.flattening);
 
@@ -405,9 +401,9 @@ const _area = (linearRing: Points, userOptions: AreaOptions = {}): number => {
             Math.tan(s / 2) *
               Math.tan((s - d1) / 2) *
               Math.tan((s - d2) / 2) *
-              Math.tan((s - d3) / 2)
-          )
-        )
+              Math.tan((s - d3) / 2),
+          ),
+        ),
       );
     lon1 = lon2;
     lat1 = lat2;
@@ -428,7 +424,7 @@ const _polygonArea = (polygon: Polygon, userOptions: AreaOptions): number => {
 
 const _multiPolygonArea = (
   polygon: MultiPolygon,
-  userOptions: AreaOptions
+  userOptions: AreaOptions,
 ): number => {
   let ret = 0;
   if (Array.isArray(polygon?.coordinates)) {
@@ -438,7 +434,7 @@ const _multiPolygonArea = (
           type: "Polygon",
           coordinates: polygon.coordinates[i],
         },
-        userOptions
+        userOptions,
       );
   }
   return ret;
@@ -446,7 +442,7 @@ const _multiPolygonArea = (
 
 export function area(
   data: Points | Feature | Geometry,
-  userOptions: AreaOptions = {}
+  userOptions: AreaOptions = {},
 ): number {
   if (Array.isArray(data)) {
     return _area(data, userOptions);

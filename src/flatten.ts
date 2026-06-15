@@ -1,9 +1,9 @@
 import type { Position } from "geojson";
 import { validLinearRing } from "./_validates";
-import { Points, CutRing } from "./types";
+import type { Points, CutRing } from "./types";
 import { linearInterpolationY } from "./calc";
-import { InvalidSelfintersectionError } from "./errors";
-import { selfintersection } from "./utils";
+import { InvalidSelfIntersectionError } from "./errors";
+import { selfIntersection } from "./utils";
 
 export type CrossingLat = {
   to: number;
@@ -43,7 +43,7 @@ export function _isCrossingAntimeridian(lon1: number, lon2: number): boolean {
 
 export function _crossingAntimeridianPointLat(
   p1: Position,
-  p2: Position
+  p2: Position,
 ): number {
   /*
     p1=[-150, 0], p2=[170, 20]) -> 15
@@ -65,7 +65,7 @@ export function _crossingAntimeridianPointLat(
 function _cutting(
   linearRing: Points,
   start: CrossingLat,
-  end: CrossingLat
+  end: CrossingLat,
 ): CutArea {
   let ringIndex = start["to"] !== linearRing.length - 1 ? start["to"] : 0;
   const diff = linearRing[start["to"]][0] - linearRing[start["from"]][0];
@@ -79,7 +79,7 @@ function _cutting(
     boundLon,
     _crossingAntimeridianPointLat(
       linearRing[start["from"]],
-      linearRing[start["to"]]
+      linearRing[start["to"]],
     ),
   ]);
   rtn.linearRing.push(linearRing[start["to"]]);
@@ -92,7 +92,7 @@ function _cutting(
     boundLon,
     _crossingAntimeridianPointLat(
       linearRing[end["from"]],
-      linearRing[end["to"]]
+      linearRing[end["to"]],
     ),
   ]);
   rtn.linearRing.push(rtn.linearRing[0]);
@@ -101,12 +101,12 @@ function _cutting(
 
 type cutRingAtAntimeridianOptions = {
   overflowing?: boolean;
-  allowSelfintersection?: boolean;
+  allowselfIntersection?: boolean;
 };
 
 export function cutRingAtAntimeridian(
   linearRing: Points,
-  userOptions: cutRingAtAntimeridianOptions = {}
+  userOptions: cutRingAtAntimeridianOptions = {},
 ): CutRing {
   /*
     When overflowing is True, points are right side of 180 degrees.
@@ -114,13 +114,11 @@ export function cutRingAtAntimeridian(
     The distance in the longitude between the points must be less than 180deg.
   */
   validLinearRing(linearRing);
-  const options = Object.assign(
-    {
-      overflowing: false,
-      allowSelfintersection: false,
-    },
-    userOptions
-  );
+  const options = {
+    overflowing: false,
+    allowSelfIntersection: false,
+    ...userOptions,
+  };
   const crossingLats: CrossingLat[] = [];
   for (let i = 0; i < linearRing.length - 1; i++) {
     if (_isCrossingAntimeridian(linearRing[i][0], linearRing[i + 1][0])) {
@@ -154,23 +152,23 @@ export function cutRingAtAntimeridian(
   const cut1 = _cutting(linearRing, start, end);
   const result1 = cutRingAtAntimeridian(cut1.linearRing, {
     overflowing: cut1.overflowing,
-    allowSelfintersection: options.allowSelfintersection,
+    allowselfIntersection: options.allowselfIntersection,
   });
   ret.within = ret.within.concat(result1.within);
   ret.outside = ret.outside.concat(result1.outside);
   const cut2 = _cutting(linearRing, end, start);
   const result2 = cutRingAtAntimeridian(cut2.linearRing, {
     overflowing: cut2.overflowing,
-    allowSelfintersection: options.allowSelfintersection,
+    allowselfIntersection: options.allowselfIntersection,
   });
   ret.within = ret.within.concat(result2.within);
   ret.outside = ret.outside.concat(result2.outside);
-  if (!options.allowSelfintersection) {
+  if (!options.allowselfIntersection) {
     ret.within.forEach((ring) => {
-      if (selfintersection(ring)) throw new InvalidSelfintersectionError();
+      if (selfIntersection(ring)) throw new InvalidSelfIntersectionError();
     });
     ret.outside.forEach((ring) => {
-      if (selfintersection(ring)) throw new InvalidSelfintersectionError();
+      if (selfIntersection(ring)) throw new InvalidSelfIntersectionError();
     });
   }
   return ret;
