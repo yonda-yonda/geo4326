@@ -14,19 +14,18 @@ const tle = [
 
 const date = new Date("2023-09-21T20:00:00Z");
 
-satellite.nadir(tle1[0], tle1[1], date);
+satellite.nadir(tle, date);
 // [152.63639371243076, 15.4476525220903]
 ```
 
-#### props
+### props
 
-| Name | Type   | Description                |
-| ---- | ------ | -------------------------- |
-| tle1 | string | **REQUIRED.** TLE's line 1 |
-| tle2 | string | **REQUIRED.** TLE's line 2 |
-| date | Date   | **REQUIRED.** target time  |
+| Name  | Type               | Description                      |
+| ----- | ------------------ | -------------------------------- |
+| value | string[] or object | **REQUIRED.** TLE strings or OMM |
+| date  | Date               | **REQUIRED.** target time        |
 
-#### return
+### return
 
 [Position](./TYPES.md#position) calculated lon / lat.
 
@@ -45,7 +44,7 @@ const tle = [
 const start = new Date("2023-09-21T00:00:00Z");
 const end = new Date("2023-09-21T02:00:00Z")
 
-satellite.subSatelliteTrack(tle1[0], tle1[1], start, end, {
+satellite.subSatelliteTrack(tle, start, end, {
   split: 180
 });
 // [
@@ -57,18 +56,18 @@ satellite.subSatelliteTrack(tle1[0], tle1[1], start, end, {
 // ]
 ```
 
-#### props
+### props
 
-| Name          | Type   | Description                            |
-| ------------- | ------ | -------------------------------------- |
-| tle1          | string | **REQUIRED.** TLE's line 1             |
-| tle2          | string | **REQUIRED.** TLE's line 2             |
-| start         | Date   | **REQUIRED.** start time               |
-| end           | Date   | **REQUIRED.** end time                 |
-| options       | object | optional params                        |
-| options.split | number | dt = orbitperiod / split (DEFAULT=360) |
+| Name          | Type               | Description                            |
+| ------------- | ------------------ | -------------------------------------- |
+| value         | string[] or object | **REQUIRED.** TLE strings or OMM       |
+| tle2          | string             | **REQUIRED.** TLE's line 2             |
+| start         | Date               | **REQUIRED.** start time               |
+| end           | Date               | **REQUIRED.** end time                 |
+| options       | object             | optional params                        |
+| options.split | number             | dt = orbitperiod / split (DEFAULT=360) |
 
-#### return
+### return
 
 [Points](./TYPES.md#points)[] subsatellite tracks.
 
@@ -86,7 +85,7 @@ const tle = [
 
 const date = new Date("2023-09-21T20:00:00Z");
 
-satellite.footprint(tle1[0], tle1[1], date, {
+satellite.footprint(tle, date, {
   split: 360
 });
 // [
@@ -98,21 +97,21 @@ satellite.footprint(tle1[0], tle1[1], date, {
 // ]
 ```
 
-#### props
+### props
 
-| Name             | Type                       | Description                                                                                                                                         |
-| ---------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| tle1             | string                     | **REQUIRED.** TLE's line 1.                                                                                                                         |
-| tle2             | string                     | **REQUIRED.** TLE's line 2.                                                                                                                         |
-| date             | Date                       | **REQUIRED.** target time.                                                                                                                          |
-| options          | object                     | optional params.                                                                                                                                    |
-| options.insert   | number                     | number of insert points on an each edge. (DEFAULT=5)                                                                                                |
-| options.fov      | number or [number, number] | virtual field-of-view. [cross track, along track] in degrees (DEFAULT=30)                                                                           |
-| options.offnadir | number                     | offnadir angle in degrees (DEFAULT=0)<br>The direction of rotation is positive to the right-hand thread law in relation to the direction of flight. |
-| options.a        | number                     | semi-major axis of central celestial body (DEFAULT=6378.137)                                                                                        |
-| options.f        | number                     | oblateness of central celestial body (DEFAULT=1/298.257223563)                                                                                      |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
-#### return
+| value | string[] or object | **REQUIRED.** TLE strings or OMM |
+| date | Date | **REQUIRED.** target time. |
+| options | object | optional params. |
+| options.insert | number | number of insert points on an each edge. (DEFAULT=5) |
+| options.fov | number or [number, number] | virtual field-of-view. [cross track, along track] in degrees (DEFAULT=30) |
+| options.offnadir | number | offnadir angle in degrees (DEFAULT=0)<br>The direction of rotation is positive to the right-hand thread law in relation to the direction of flight. |
+| options.a | number | semi-major axis of central celestial body (DEFAULT=6378.137) |
+| options.f | number | oblateness of central celestial body (DEFAULT=1/298.257223563) |
+
+### return
 
 linearRing([Points](./TYPES.md#points))
 
@@ -131,7 +130,7 @@ const tle = [
 const start = new Date("2023-09-21T18:40:00Z");
 const end = new Date("2023-09-21T19:00:00Z");
 
-satellite.accessArea(tle1[0], tle1[1], start, end, {
+satellite.accessArea(tle, start, end, {
   roll: 10
 });
 // [
@@ -144,20 +143,20 @@ satellite.accessArea(tle1[0], tle1[1], start, end, {
 // ]
 ```
 
-#### props
+### props
 
-| Name          | Type                       | Description                                                                                                                                                                                                                                                      |
-| ------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| tle1          | string                     | **REQUIRED.** TLE's line 1                                                                                                                                                                                                                                       |
-| tle2          | string                     | **REQUIRED.** TLE's line 2                                                                                                                                                                                                                                       |
-| start         | Date                       | **REQUIRED.** start time                                                                                                                                                                                                                                         |
-| end           | Date                       | **REQUIRED.** end time                                                                                                                                                                                                                                           |
-| options       | object                     | optional params                                                                                                                                                                                                                                                  |
-| options.split | number                     | dt = orbitperiod / split (DEFAULT=360)                                                                                                                                                                                                                           |
-| options.roll  | number or [number, number] | maximum roll angle in degrees (DEFAULT=10)<br>If passed as an array, the larger value means the left side and the smaller value means the right side. The direction of rotation is positive to the right-hand thread law in relation to the direction of flight. |
-| options.a     | number                     | semi-major axis of central celestial body (DEFAULT=6378.137)                                                                                                                                                                                                     |
-| options.f     | number                     | oblateness of central celestial body (DEFAULT=1/298.257223563)                                                                                                                                                                                                   |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
-#### return
+| value | string[] or object | **REQUIRED.** TLE strings or OMM |
+| start | Date | **REQUIRED.** start time |
+| end | Date | **REQUIRED.** end time |
+| options | object | optional params |
+| options.split | number | dt = orbitperiod / split (DEFAULT=360) |
+| options.roll | number or [number, number] | maximum roll angle in degrees (DEFAULT=10)<br>If passed as an array, the larger value means the left side and the smaller value means the right side. The direction of rotation is positive to the right-hand thread law in relation to the direction of flight. |
+| options.a | number | semi-major axis of central celestial body (DEFAULT=6378.137) |
+| options.f | number | oblateness of central celestial body (DEFAULT=1/298.257223563) |
+
+### return
 
 linearRing([Points](./TYPES.md#points))[]

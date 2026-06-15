@@ -2,25 +2,60 @@ import type { Position } from "geojson";
 import {
   propagate,
   gstime,
+  json2satrec,
   twoline2satrec,
   eciToGeodetic,
   degreesLong,
   degreesLat,
-  PositionAndVelocity,
-  EciVec3,
-  GeodeticLocation,
 } from "satellite.js";
+import type {
+  OMMJsonObject,
+  EciVec3,
+  SatRec,
+  GeodeticLocation,
+  PositionAndVelocity,
+} from "satellite.js";
+
+export type { OMMJsonObject } from "satellite.js";
 
 import { unit, cross, add, dot, multiple, rodoriguesRotate } from "./vector";
 
 import { LookingAwayError } from "./errors";
 import { _transformEnclosingPoleRing } from "./transform";
-import { Points } from "./types";
+import type { Points } from "./types";
 import { within } from "./utils";
+
+export type GPData = string[] | OMMJsonObject | OMMJsonObject[];
+
+export const getSatRec = (value: GPData): SatRec => {
+  let satrec: SatRec | null = null;
+  if (Array.isArray(value)) {
+    if (
+      value.length === 2 &&
+      typeof value[0] === "string" &&
+      typeof value[1] === "string"
+    ) {
+      satrec = twoline2satrec(value[0], value[1]);
+    }
+    if (
+      value.length === 3 &&
+      typeof value[0] === "string" &&
+      typeof value[1] === "string" &&
+      typeof value[2] === "string"
+    ) {
+      satrec = twoline2satrec(value[1], value[2]);
+    }
+    if (value.length > 0 && typeof value[0] !== "string") {
+      satrec = json2satrec(value[0]);
+    }
+  } else satrec = json2satrec(value);
+  if (satrec === null) throw new TypeError();
+  return satrec;
+};
 
 const _getNadir = (
   positionAndVelocity: PositionAndVelocity,
-  gmst: number
+  gmst: number,
 ): Position => {
   if (typeof positionAndVelocity.position === "boolean") {
     throw TypeError("positionAndVelocity has not a number.");
@@ -30,15 +65,13 @@ const _getNadir = (
   return [degreesLong(position.longitude), degreesLat(position.latitude)];
 };
 
-export const nadir = (
-  tleLine1: string,
-  tleLine2: string,
-  date: Date
-): Position => {
-  const satrec = twoline2satrec(tleLine1, tleLine2);
+export const nadir = (value: GPData, date: Date): Position => {
+  const satrec = getSatRec(value);
+
   const positionAndVelocity = propagate(satrec, date);
   const gmst = gstime(date);
 
+  if (positionAndVelocity === null) throw new TypeError();
   return _getNadir(positionAndVelocity, gmst);
 };
 
@@ -47,20 +80,16 @@ export interface SubSatelliteTrackOptions {
 }
 
 export const subSatelliteTrack = (
-  tleLine1: string,
-  tleLine2: string,
+  value: GPData,
   start: Date,
   end: Date,
-  userOptions?: SubSatelliteTrackOptions
+  userOptions?: SubSatelliteTrackOptions,
 ): Points[] => {
-  const options = Object.assign(
-    {
-      split: 360,
-    },
-    userOptions
-  );
-
-  const satrec = twoline2satrec(tleLine1, tleLine2);
+  const options = {
+    split: 360,
+    ...userOptions,
+  };
+  const satrec = getSatRec(value);
 
   const meanMotion = satrec.no; // [rad/min]
   const orbitPeriod = (2 * Math.PI) / (meanMotion / 60); // [sec]
@@ -72,9 +101,7 @@ export const subSatelliteTrack = (
 
   while (d < end) {
     const positionAndVelocity = propagate(satrec, d);
-    if (typeof positionAndVelocity.position === "boolean") {
-      throw TypeError("positionAndVelocity has not a number.");
-    }
+    if (positionAndVelocity === null) throw new TypeError();
 
     const gmst = gstime(d);
     const current = _getNadir(positionAndVelocity, gmst);
@@ -113,7 +140,7 @@ const getGroundObservingPosition = (
   b: number,
   ex: EciVec3<number>,
   ey: EciVec3<number>,
-  ez: EciVec3<number>
+  ez: EciVec3<number>,
 ): EciVec3<number> => {
   const c = a;
   const d = {
@@ -155,11 +182,11 @@ const _warp = (lonlat: number[], reference?: number[]): Position => {
 
 export const toLonLat = (
   point: GeodeticLocation,
-  reference?: number[]
+  reference?: number[],
 ): Position => {
   return _warp(
     [degreesLong(point.longitude), degreesLat(point.latitude)],
-    reference
+    reference,
   );
 };
 
@@ -174,18 +201,16 @@ export interface FootprintOptions {
 const _getFootprint = (
   positionAndVelocity: PositionAndVelocity,
   gmst: number,
-  userOptions?: FootprintOptions
+  userOptions?: FootprintOptions,
 ): Points => {
-  const options = Object.assign(
-    {
-      insert: 5,
-      fov: 30,
-      a: 6378.137, // WGS84
-      f: 1 / 298.257223563, // WGS84
-      offnadir: 0,
-    },
-    userOptions
-  );
+  const options = {
+    insert: 5,
+    fov: 30,
+    a: 6378.137, // WGS84
+    f: 1 / 298.257223563, // WGS84
+    offnadir: 0,
+    ...userOptions,
+  };
   if (
     typeof positionAndVelocity.position === "boolean" ||
     typeof positionAndVelocity.velocity === "boolean"
@@ -231,8 +256,8 @@ const _getFootprint = (
     rodoriguesRotate(
       ex,
       options.offnadir,
-      multiple(positionAndVelocity.position, -1)
-    )
+      multiple(positionAndVelocity.position, -1),
+    ),
   );
   const ey = unit(cross(ez, ex));
 
@@ -249,11 +274,11 @@ const _getFootprint = (
         b,
         ex,
         ey,
-        ez
+        ez,
       ),
-      gmst
+      gmst,
     ),
-    nadir
+    nadir,
   );
 
   const positions = [
@@ -264,7 +289,7 @@ const _getFootprint = (
       b,
       ex,
       ey,
-      ez
+      ez,
     ),
     getGroundObservingPosition(
       positionAndVelocity.position,
@@ -273,7 +298,7 @@ const _getFootprint = (
       b,
       ex,
       ey,
-      ez
+      ez,
     ),
     getGroundObservingPosition(
       positionAndVelocity.position,
@@ -282,7 +307,7 @@ const _getFootprint = (
       b,
       ex,
       ey,
-      ez
+      ez,
     ),
     getGroundObservingPosition(
       positionAndVelocity.position,
@@ -291,7 +316,7 @@ const _getFootprint = (
       b,
       ex,
       ey,
-      ez
+      ez,
     ),
   ];
 
@@ -302,16 +327,16 @@ const _getFootprint = (
         ...positions.map((position) => [position.x, position.y]),
         [positions[0].x, positions[0].y],
       ],
-      { includeBorder: true }
+      { includeBorder: true },
     )
   ) {
     return _transformEnclosingPoleRing(
       [...positions, positions[0]].map((p) =>
-        toLonLat(eciToGeodetic(p, gmst), center)
+        toLonLat(eciToGeodetic(p, gmst), center),
       ),
       "EPSG:4326",
       options.insert,
-      positionAndVelocity.position.z >= 0
+      positionAndVelocity.position.z >= 0,
     );
   }
 
@@ -331,8 +356,8 @@ const _getFootprint = (
           b,
           ex,
           ey,
-          ez
-        )
+          ez,
+        ),
       );
     }
   }
@@ -352,8 +377,8 @@ const _getFootprint = (
           b,
           ex,
           ey,
-          ez
-        )
+          ez,
+        ),
       );
     }
   }
@@ -373,8 +398,8 @@ const _getFootprint = (
           b,
           ex,
           ey,
-          ez
-        )
+          ez,
+        ),
       );
     }
   }
@@ -394,8 +419,8 @@ const _getFootprint = (
           b,
           ex,
           ey,
-          ez
-        )
+          ez,
+        ),
       );
     }
   }
@@ -407,15 +432,15 @@ const _getFootprint = (
 };
 
 export const footprint = (
-  tleLine1: string,
-  tleLine2: string,
+  value: GPData,
   date: Date,
-  userOptions?: FootprintOptions
+  userOptions?: FootprintOptions,
 ): Points => {
-  const satrec = twoline2satrec(tleLine1, tleLine2);
+  const satrec = getSatRec(value);
   const positionAndVelocity = propagate(satrec, date);
   const gmst = gstime(date);
 
+  if (positionAndVelocity === null) throw new TypeError();
   return _getFootprint(positionAndVelocity, gmst, userOptions);
 };
 
@@ -438,7 +463,7 @@ const _getEdge = (
   rolls: number[],
   insert: number,
   reference: number[],
-  start: boolean
+  start: boolean,
 ): Points => {
   const edgePositions: Points = [];
   const theta0 = start ? rolls[0] : rolls[1];
@@ -461,12 +486,12 @@ const _getEdge = (
             b,
             ex,
             ey,
-            ez
+            ez,
           ),
-          gmst
+          gmst,
         ),
-        reference
-      )
+        reference,
+      ),
     );
   }
 
@@ -474,24 +499,20 @@ const _getEdge = (
 };
 
 export const accessArea = (
-  tleLine1: string,
-  tleLine2: string,
+  value: GPData,
   start: Date,
   end: Date,
-  userOptions?: AccessAreaOptions
+  userOptions?: AccessAreaOptions,
 ): Points[] => {
-  const options = Object.assign(
-    {
-      split: 360,
-      roll: 10,
-      radius: 6378.137, // WGS84
-      f: 1 / 298.257223563, // WGS84
-      insert: 5,
-    },
-    userOptions
-  );
-
-  const satrec = twoline2satrec(tleLine1, tleLine2);
+  const options = {
+    split: 360,
+    roll: 10,
+    radius: 6378.137, // WGS84
+    f: 1 / 298.257223563, // WGS84
+    insert: 5,
+    ...userOptions,
+  };
+  const satrec = getSatRec(value);
 
   const meanMotion = satrec.no; // [rad/min]
   const orbitPeriod = (2 * Math.PI) / (meanMotion / 60); // [sec]
@@ -536,12 +557,7 @@ export const accessArea = (
 
   while (d < end) {
     const positionAndVelocity = propagate(satrec, d);
-    if (
-      typeof positionAndVelocity.position === "boolean" ||
-      typeof positionAndVelocity.velocity === "boolean"
-    ) {
-      throw TypeError("positionAndVelocity has not a number.");
-    }
+    if (positionAndVelocity === null) throw new TypeError();
 
     const gmst = gstime(d);
 
@@ -556,7 +572,7 @@ export const accessArea = (
       b,
       ex,
       ey,
-      ez
+      ez,
     );
     const leftLocation = eciToGeodetic(leftVector, gmst);
 
@@ -567,7 +583,7 @@ export const accessArea = (
       b,
       ex,
       ey,
-      ez
+      ez,
     );
     const rightLocation = eciToGeodetic(rightVector, gmst);
 
@@ -585,7 +601,7 @@ export const accessArea = (
         rolls,
         options.insert,
         reference,
-        true
+        true,
       );
     }
     const left = toLonLat(leftLocation, reference);
@@ -614,15 +630,15 @@ export const accessArea = (
       if (
         within(
           [0, 0],
-          vectorRing.map((v) => [v.x, v.y])
+          vectorRing.map((v) => [v.x, v.y]),
         )
       ) {
         leftTrack = leftTrack.concat(
-          leftPositions.slice(0, leftPositions.length - 1)
+          leftPositions.slice(0, leftPositions.length - 1),
         );
 
         rightTrack = rightTrack.concat(
-          rightPositions.slice(0, rightPositions.length - 1)
+          rightPositions.slice(0, rightPositions.length - 1),
         );
         const middleLeftPosition = [...leftPositions[leftPositions.length - 1]];
         const middleRightPosition = [
@@ -638,7 +654,7 @@ export const accessArea = (
         }
         if (
           Math.abs(
-            middleRightPosition[0] - rightTrack[rightTrack.length - 1][0]
+            middleRightPosition[0] - rightTrack[rightTrack.length - 1][0],
           ) > 180
         ) {
           middleRightPosition[0] +=
@@ -699,7 +715,7 @@ export const accessArea = (
             rolls,
             options.insert,
             reference,
-            false
+            false,
           ));
 
           linearRing = linearRing.concat([
@@ -731,7 +747,7 @@ export const accessArea = (
             rolls,
             options.insert,
             reference,
-            true
+            true,
           );
         }
 
@@ -757,7 +773,7 @@ export const accessArea = (
           rolls,
           options.insert,
           reference,
-          false
+          false,
         );
         linearRing = linearRing.concat([
           ...endEdgePositions,

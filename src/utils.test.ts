@@ -3,13 +3,11 @@ import {
   isCcw,
   within,
   intersection,
-  selfintersection,
-  getCrs,
+  selfIntersection,
   hasSingularity,
   overlapping,
   enclosing,
 } from "./utils";
-import { InvalidCodeError } from "./errors";
 
 it("area", () => {
   expect(
@@ -19,7 +17,7 @@ it("area", () => {
       [10, 10],
       [-10, 10],
       [-10, -10],
-    ])
+    ]),
   ).toBe(400);
   expect(
     area([
@@ -28,7 +26,7 @@ it("area", () => {
       [10, 10],
       [10, -10],
       [-10, -10],
-    ])
+    ]),
   ).toBe(400);
   expect(
     area([
@@ -36,7 +34,7 @@ it("area", () => {
       [6, 0],
       [3, 4],
       [0, 0],
-    ])
+    ]),
   ).toBe(12);
 });
 
@@ -48,7 +46,7 @@ it("isCcw", () => {
       [10, 10],
       [-10, 10],
       [-10, -10],
-    ])
+    ]),
   ).toBeTruthy();
   expect(
     isCcw([
@@ -57,7 +55,7 @@ it("isCcw", () => {
       [10, 10],
       [10, -10],
       [-10, -10],
-    ])
+    ]),
   ).toBeFalsy();
   expect(
     isCcw([
@@ -66,7 +64,7 @@ it("isCcw", () => {
       [-170, 10],
       [170, 10],
       [170, -10],
-    ])
+    ]),
   ).toBeFalsy();
 });
 
@@ -80,8 +78,8 @@ it("within", () => {
         [10, 10],
         [-10, 10],
         [-10, -10],
-      ]
-    )
+      ],
+    ),
   ).toBeTruthy();
 
   expect(
@@ -93,8 +91,8 @@ it("within", () => {
         [10, 10],
         [-10, 10],
         [-10, -10],
-      ]
-    )
+      ],
+    ),
   ).toBeFalsy();
 
   expect(
@@ -106,8 +104,8 @@ it("within", () => {
         [10, 10],
         [-10, 10],
         [-10, -10],
-      ]
-    )
+      ],
+    ),
   ).toBeFalsy();
 
   expect(
@@ -122,8 +120,8 @@ it("within", () => {
       ],
       {
         includeBorder: true,
-      }
-    )
+      },
+    ),
   ).toBeTruthy();
 
   expect(
@@ -135,8 +133,8 @@ it("within", () => {
         [10, 10],
         [-10, 10],
         [-10, -10],
-      ]
-    )
+      ],
+    ),
   ).toBeFalsy();
 
   expect(
@@ -151,8 +149,8 @@ it("within", () => {
       ],
       {
         includeBorder: true,
-      }
-    )
+      },
+    ),
   ).toBeTruthy();
 
   expect(
@@ -164,8 +162,8 @@ it("within", () => {
         [-170, 10],
         [170, 10],
         [170, -10],
-      ]
-    )
+      ],
+    ),
   ).toBeTruthy();
 
   expect(
@@ -177,8 +175,8 @@ it("within", () => {
         [-170, 10],
         [170, 10],
         [170, -10],
-      ]
-    )
+      ],
+    ),
   ).toBeFalsy();
 
   expect(
@@ -190,8 +188,8 @@ it("within", () => {
         [-170, 10],
         [170, 10],
         [170, -10],
-      ]
-    )
+      ],
+    ),
   ).toBeFalsy();
 });
 
@@ -209,94 +207,79 @@ it("intersection", () => {
   expect(intersection([0, 0], [10, 10], [-2, -2], [5, 5])).toBeTruthy();
 });
 
-it("selfintersection", () => {
+it("selfIntersection", () => {
   expect(
-    selfintersection([
+    selfIntersection([
       [-10, -10],
       [10, -10],
       [10, 10],
       [-10, 10],
       [-10, -10],
-    ])
+    ]),
   ).toBeFalsy();
 
   expect(
-    selfintersection([
+    selfIntersection([
       [-10, -10],
       [-10, 10],
       [10, 10],
       [10, -10],
       [-10, -10],
-    ])
+    ]),
   ).toBeFalsy();
 
   expect(
-    selfintersection([
+    selfIntersection([
       [-10, -10],
       [10, -10],
       [10, 10],
       [0, 10],
       [-10, 10],
       [-10, -10],
-    ])
+    ]),
   ).toBeFalsy();
 
   expect(
-    selfintersection([
+    selfIntersection([
       [-10, -10],
       [10, -10],
       [10, 10],
       [0, -10],
       [-10, 10],
       [-10, -10],
-    ])
+    ]),
   ).toBeTruthy();
 
   expect(
-    selfintersection([
+    selfIntersection([
       [-10, -10],
       [10, -10],
       [20, -10],
       [-10, -10],
-    ])
+    ]),
   ).toBeTruthy();
 
   expect(
-    selfintersection([
+    selfIntersection([
       [-10, -10],
       [10, -10],
       [-15, 0],
       [10, 10],
       [-10, 10],
       [-10, -10],
-    ])
+    ]),
   ).toBeTruthy();
 
   expect(
-    selfintersection([
+    selfIntersection([
       [-10, -10],
       [10, -10],
       [10, 10],
       [10, 10],
       [-10, 10],
       [-10, -10],
-    ])
+    ]),
   ).toBeFalsy();
-});
-
-it("getCrs", () => {
-  expect(getCrs(4326)).toBe("+proj=longlat +datum=WGS84 +no_defs +type=crs");
-  expect(getCrs("EPSG:3031")).toBe(
-    "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs"
-  );
-  expect(getCrs("epsg:3031")).toBe(
-    "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs"
-  );
-  expect(getCrs("epsg3031")).toBe("epsg3031");
-
-  expect(() => {
-    getCrs("epsg:1");
-  }).toThrow(InvalidCodeError);
 });
 
 it("hasSingularity", () => {
@@ -304,25 +287,25 @@ it("hasSingularity", () => {
     hasSingularity([
       [10, 10],
       [NaN, 1],
-    ])
+    ]),
   ).toBeTruthy();
   expect(
     hasSingularity([
       [10, 10],
       [0, 1],
-    ])
+    ]),
   ).toBeFalsy();
   expect(
     hasSingularity([
       [Infinity, 10],
       [0, 1],
-    ])
+    ]),
   ).toBeTruthy();
   expect(
     hasSingularity([
       [-100, -Infinity],
       [0, 1],
-    ])
+    ]),
   ).toBeTruthy();
 });
 
@@ -342,8 +325,8 @@ it("overlapping", () => {
         [180.0, 5.0],
         [170.0, 5.0],
         [170.0, 0.0],
-      ]
-    )
+      ],
+    ),
   ).toBeTruthy();
   expect(
     overlapping(
@@ -360,8 +343,8 @@ it("overlapping", () => {
         [190.0, 10.0],
         [170.0, 10.0],
         [170.0, 0.0],
-      ]
-    )
+      ],
+    ),
   ).toBeTruthy();
   expect(
     overlapping(
@@ -378,8 +361,8 @@ it("overlapping", () => {
         [80.0, 5.0],
         [70.0, 5.0],
         [70.0, 0.0],
-      ]
-    )
+      ],
+    ),
   ).toBeFalsy();
   expect(
     overlapping(
@@ -396,8 +379,8 @@ it("overlapping", () => {
         [170.0, 0.0],
         [160.0, 0.0],
         [160.0, -10.0],
-      ]
-    )
+      ],
+    ),
   ).toBeTruthy();
   expect(
     overlapping(
@@ -420,8 +403,8 @@ it("overlapping", () => {
         [-153.9196900435318, 58.39624886309962],
         [-173.55089890022404, 57.98511245909557],
         [-170.81849714367317, 50.675753802410455],
-      ]
-    )
+      ],
+    ),
   ).toBeTruthy();
 });
 
@@ -441,8 +424,8 @@ it("enclosing", () => {
         [190.0, 10.0],
         [170.0, 10.0],
         [170.0, 0.0],
-      ]
-    )
+      ],
+    ),
   ).toBeTruthy();
   expect(
     enclosing(
@@ -459,8 +442,8 @@ it("enclosing", () => {
         [185.0, 10.0],
         [180.0, 10.0],
         [180.0, 5.0],
-      ]
-    )
+      ],
+    ),
   ).toBeFalsy();
   expect(
     enclosing(
@@ -477,8 +460,8 @@ it("enclosing", () => {
         [190.0, 10.0],
         [170.0, 10.0],
         [170.0, 0.0],
-      ]
-    )
+      ],
+    ),
   ).toBeTruthy();
   expect(
     enclosing(
@@ -495,8 +478,8 @@ it("enclosing", () => {
         [190.0, 10.0],
         [170.0, 10.0],
         [170.0, 0.0],
-      ]
-    )
+      ],
+    ),
   ).toBeFalsy();
   expect(
     enclosing(
@@ -513,7 +496,7 @@ it("enclosing", () => {
         [190.0, 10.0],
         [170.0, 10.0],
         [170.0, 0.0],
-      ]
-    )
+      ],
+    ),
   ).toBeFalsy();
 });

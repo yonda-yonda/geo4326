@@ -1,12 +1,12 @@
 import type { Position } from "geojson";
 import { validNumber, validPoint } from "./_validates";
-import { Points } from "./types";
+import type { Points } from "./types";
 import { _eq } from "./utils";
 
 export function linearInterpolationX(
   p1: Position,
   p2: Position,
-  y: number
+  y: number,
 ): number {
   validPoint(p1);
   validPoint(p2);
@@ -17,7 +17,7 @@ export function linearInterpolationX(
 export function linearInterpolationY(
   p1: Position,
   p2: Position,
-  x: number
+  x: number,
 ): number {
   validPoint(p1);
   validPoint(p2);
@@ -29,7 +29,7 @@ const _calcLinearInterpolationPoint = function (
   i: number,
   p1: Position,
   p2: Position,
-  partition: number
+  partition: number,
 ): Position {
   const div = Math.floor(partition);
   if (_eq(p1[0], p2[0])) {
@@ -48,16 +48,14 @@ type linearInterpolationPointsOptions = {
 export function linearInterpolationPoints(
   p1: Position,
   p2: Position,
-  userOptions: linearInterpolationPointsOptions = {}
+  userOptions: linearInterpolationPointsOptions = {},
 ): Points {
   validPoint(p1);
   validPoint(p2);
-  const options = Object.assign(
-    {
-      partition: 0,
-    },
-    userOptions
-  );
+  const options = {
+    partition: 0,
+    ...userOptions,
+  };
   validNumber(options.partition);
 
   if (options.partition <= 0) return [p1, p2];

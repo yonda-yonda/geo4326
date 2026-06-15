@@ -5,6 +5,6 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ["src/_generated/*"]
-  }
+    ignores: ["src/_generated/*"],
+  },
 );

@@ -54,7 +54,7 @@ it("cutRingAtAntimeridian", () => {
       [175, 30],
       [-160, 30],
       [-160, 40],
-    ])
+    ]),
   ).toEqual({
     within: [
       [
@@ -95,7 +95,7 @@ it("cutRingAtAntimeridian", () => {
       [175, 30],
       [-160, 30],
       [-160, 40],
-    ])
+    ]),
   ).toEqual({
     within: [
       [
@@ -135,7 +135,7 @@ it("cutRingAtAntimeridian", () => {
       [175, 30],
       [-160, 30],
       [-160, 40],
-    ])
+    ]),
   ).toEqual({
     within: [
       [
@@ -164,7 +164,7 @@ it("cutRingAtAntimeridian", () => {
       [175, 30],
       [160, 30],
       [160, 40],
-    ])
+    ]),
   ).toEqual({
     within: [
       [
@@ -185,7 +185,7 @@ it("cutRingAtAntimeridian", () => {
       [15, 40],
       [-10, 40],
       [-10, 30],
-    ])
+    ]),
   ).toEqual({
     within: [
       [
@@ -210,9 +210,9 @@ it("cutRingAtAntimeridian", () => {
         [-160, 40],
       ],
       {
-        allowSelfintersection: true,
-      }
-    )
+        allowselfIntersection: true,
+      },
+    ),
   ).toEqual({
     within: [
       [
@@ -250,7 +250,7 @@ it("cutRingAtAntimeridian", () => {
       [-175, 35],
       [175, 40],
       [-160, 40],
-    ])
+    ]),
   ).toEqual({
     within: [
       [
@@ -287,7 +287,7 @@ it("cutRingAtAntimeridian", () => {
       [175, 30],
       [185, 40],
       [185, 50],
-    ])
+    ]),
   ).toEqual({
     outside: [
       [
@@ -316,7 +316,7 @@ it("cutRingAtAntimeridian", () => {
       [-185, 30],
       [-170, 60],
       [-170, 70],
-    ])
+    ]),
   ).toEqual({
     outside: [
       [
@@ -345,7 +345,7 @@ it("cutRingAtAntimeridian", () => {
       [350, 30],
       [370, 40],
       [370, 50],
-    ])
+    ]),
   ).toEqual({
     outside: [],
     within: [
@@ -366,7 +366,7 @@ it("cutRingAtAntimeridian", () => {
       [-545, 30],
       [-530, 60],
       [-530, 70],
-    ])
+    ]),
   ).toEqual({
     outside: [
       [
@@ -395,7 +395,7 @@ it("cutRingAtAntimeridian", () => {
       [190, 30],
       [200, 40],
       [200, 50],
-    ])
+    ]),
   ).toEqual({
     outside: [],
     within: [
@@ -423,7 +423,7 @@ it("expandRingAtAntimeridian", () => {
       [-175, 30],
       [-160, 30],
       [-160, 40],
-    ])
+    ]),
   ).toEqual([
     [200, 40],
     [185, 40],
@@ -448,7 +448,7 @@ it("expandRingAtAntimeridian", () => {
       [-160, 40],
       [-175, 40],
       [175, 40],
-    ])
+    ]),
   ).toEqual([
     [175, 40],
     [185, 38],
@@ -473,7 +473,7 @@ it("expandRingAtAntimeridian", () => {
       [200, 40],
       [185, 40],
       [175, 40],
-    ])
+    ]),
   ).toEqual([
     [175, 40],
     [185, 38],
@@ -498,7 +498,7 @@ it("expandRingAtAntimeridian", () => {
       [-520, 40],
       [-535, 40],
       [-545, 40],
-    ])
+    ]),
   ).toEqual([
     [-545, 40],
     [-535, 38],
